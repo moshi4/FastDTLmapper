@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "dtlmapper"
+version = "0.1.0"
+description = "Genome-wide gene DTL(Duplication-Transfer-Loss) event mapping tool"
+authors = ["moshi"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+biopython = "^1.79"
+beautifulsoup4 = "^4.10.0"
+lxml = "^4.6.3"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.9.2"
+black = "^21.9b0"
+pydocstyle = "^6.1.1"
+ipykernel = "^6.4.1"
+ipython = "^7.27.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
