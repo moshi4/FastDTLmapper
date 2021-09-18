@@ -51,3 +51,22 @@ class NodeEvent:
         text += f"gain={self.gain_num} "
         text += f"los={self.los_num}]"
         return text
+
+    @property
+    def as_csv_format(self) -> str:
+        """Node event csv format text"""
+        trn_detail_text = ""
+        for trn_detail in self.trn_detail_list:
+            trn_detail_text += trn_detail.as_text + "|"
+        trn_detail_text = trn_detail_text.rstrip("|")
+        csv_text = (
+            f"{self.node_id},{self.gene_num},{self.gain_num},{self.brn_num},"
+            + f"{self.dup_num},{self.trn_num},{self.los_num},{trn_detail_text}"
+        )
+        return csv_text
+
+    @property
+    def as_tsv_format(self) -> str:
+        """Node event tsv format text"""
+        csv_text = self.as_csv_format
+        return csv_text.replace(",", "\t")
