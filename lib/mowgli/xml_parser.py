@@ -21,7 +21,14 @@ class MowgliXmlParser:
         self._trn_list = self._get_trn_list()
 
     def get_node_event(self, target_node_id: int) -> NodeEvent:
-        """Get target node DTL event"""
+        """Get target node DTL event
+
+        Args:
+            target_node_id (int): Target node id
+
+        Returns:
+            NodeEvent: Target node event
+        """
         dup_num = self._dup_node_id_list.count(target_node_id)
         los_num = self._los_node_id_list.count(target_node_id)
         trn_num = 0
@@ -36,8 +43,13 @@ class MowgliXmlParser:
         )
 
     def _read_xml(self) -> BeautifulSoup:
-        """Read xml file"""
+        """Read Mowgli xml result
+
+        Returns:
+            BeautifulSoup: Beautifulsoup xml parsed object
+        """
         with open(self.mowgli_xml_file) as f:
+            # Replace invalid character ':' to '_'
             xml_string = f.read().replace(":", "_")
         return BeautifulSoup(xml_string, "lxml")
 
@@ -51,11 +63,19 @@ class MowgliXmlParser:
         self.total_cost = int(self._soup.select_one("rec_totalCost").text)
 
     def _get_brn_node_id(self) -> int:
-        """Get gene born node id"""
+        """Get gene born node id
+
+        Returns:
+            int: Gene born node id
+        """
         return int(self._soup.select_one("rec_locationSp").text)
 
     def _get_dup_node_id_list(self) -> List[int]:
-        """Get duplication node id list"""
+        """Get duplication node id list
+
+        Returns:
+            List[int]: Duplication node id list
+        """
         dup_node_id_list = []
         for dup_record in self._soup.select("rec_duplication"):
             dup_node_id = int(dup_record.select_one("rec_locationSp").text)
@@ -63,7 +83,11 @@ class MowgliXmlParser:
         return dup_node_id_list
 
     def _get_los_node_id_list(self) -> List[int]:
-        """Get loss node id list"""
+        """Get loss node id list
+
+        Returns:
+            List[int]: Loss node id list
+        """
         los_node_id_list = []
         for los_record in self._soup.select("rec_loss"):
             los_node_id = int(los_record.select_one("rec_locationSp").text)
@@ -71,7 +95,11 @@ class MowgliXmlParser:
         return los_node_id_list
 
     def _get_trn_list(self) -> List[Transfer]:
-        """Get transfer donor & recipient node id list"""
+        """Get transfer donor & recipient node id list
+
+        Returns:
+            List[Transfer]: Transfer node id list
+        """
         trn_node_id_list = []
         for trn_record in self._soup.select("rec_transfer"):
             trn_donor_node_id = int(trn_record.select_one("rec_originSp").text)

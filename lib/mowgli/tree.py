@@ -31,12 +31,28 @@ class MowgliTree:
         return deepcopy(self._named_tree)
 
     def _prune_outgroup_node(self, tree: Tree) -> Tree:
+        """Prune Mowgli auto added outgroup
+
+        Args:
+            tree (Tree): Mowgli species tree
+
+        Returns:
+            Tree: Outgroup pruned tree
+        """
         tree = deepcopy(tree)
         outgroup_clade = list(tree.find_clades({"name": "OUTGROUP_.*"}))[0]
         tree.prune(outgroup_clade)
         return tree
 
     def _get_numbered_tree(self, tree: Tree) -> Tuple[Tree, Dict[str, str]]:
+        """Get Mowgli numbered node name tree (convert no numbered node name)
+
+        Args:
+            tree (Tree): Mowgli species tree
+
+        Returns:
+            Tuple[Tree, Dict[str, str]]: Numbered tree & convert dictionary
+        """
         tree = deepcopy(tree)
         node_num2name = {}
         for node in tree.get_terminals():
@@ -56,6 +72,15 @@ class MowgliTree:
     def _convert_tree_node_name(
         self, tree: Tree, node_num2name: Dict[str, str]
     ) -> Tree:
+        """Convert tree numbered node to named node (e.g. '8' -> 'N003')
+
+        Args:
+            tree (Tree): Numbered name tree
+            node_num2name (Dict[str, str]): number to name convert dictionary
+
+        Returns:
+            Tree: Node name converted tree
+        """
         tree = deepcopy(tree)
         for node in tree.find_clades():
             node.name = node_num2name[node.name]

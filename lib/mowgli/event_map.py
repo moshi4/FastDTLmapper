@@ -19,7 +19,12 @@ class MowgliEventMap:
         self.mowgli_tree = MowgliTree(self.mowgli_species_tree_file)
 
     def write_tree(self, outfile: str, map_type: str) -> None:
-        """Write event map tree newick file"""
+        """Write event map tree newick file
+
+        Args:
+            outfile (str): Output tree file path
+            map_type (str): mapping type ("gain-loss" or "dtl")
+        """
         named_tree = self.mowgli_tree.named_tree
         for node in named_tree.find_clades():
             node_event = self.get_node_event(node.name)
@@ -37,14 +42,25 @@ class MowgliEventMap:
             f.write(replace_tree_info)
 
     def get_all_node_event(self) -> List[NodeEvent]:
-        """Get all node event"""
+        """Get all node event
+
+        Returns:
+            List[NodeEvent]: All node event
+        """
         node_event_list = []
         for node_name in self.mowgli_tree.node_num2name.values():
             node_event_list.append(self.get_node_event(node_name))
         return node_event_list
 
     def get_node_event(self, target_node_id: str) -> NodeEvent:
-        """Get target node event"""
+        """Get target node event
+
+        Args:
+            target_node_id (str): Target node id
+
+        Returns:
+            NodeEvent: Target node event
+        """
         # Get DTL node event
         node_name2num = {
             name: int(num) for num, name in self.mowgli_tree.node_num2name.items()
