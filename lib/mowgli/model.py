@@ -24,7 +24,7 @@ class NodeEvent:
     los_num: int
     trn_num: int
     trn_detail_list: List[Transfer]
-    brn_num: bool
+    brn_num: int
     gene_num: Optional[int] = None
 
     @property
