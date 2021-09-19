@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -40,6 +41,12 @@ class Config:
 
     def _makedirs(self) -> None:
         """Create config output directories"""
+        # Check OrthoFinder previous work dir
+        if self.ortho_tmpwork_dir.exists():
+            # IF exists delete
+            shutil.rmtree(self.ortho_tmpwork_dir)
+
+        # Make configured output directory
         for target_dir in (
             self.fasta_dir,
             self.ortho_dir,
