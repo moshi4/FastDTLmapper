@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "dtlmapper"
+name = "fastDTLmapper"
 version = "0.1.0"
-description = "Genome-wide gene DTL(Duplication-Transfer-Loss) event mapping tool"
+description = "Genome-wide DTL(Duplication-Transfer-Loss) event mapping tool"
 authors = ["moshi"]
 
 [tool.poetry.dependencies]
