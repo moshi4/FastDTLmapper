@@ -21,6 +21,13 @@ class Config:
     rseed: int
 
     def __post_init__(self):
+        # TODO: Fix directory structure
+        # 00_user_data -> dir:fasta, tree
+        # 01_orthofinder (Raw result)
+        # 02_dtl_reconciliation -> dir:OGname
+        #    -> file: OGfasta, aln, trim,  tree, rooted_tree, dir: mowgli
+        # 03_aggregate_dtl_result -> file: all_dtl_map, all_gl_map, all_node_event_tsv
+        # log -> dir: dependent programe names -> file: command.txt, output.txt
         self.fasta_dir = self.outdir / "00_fasta"
         self.ortho_dir = self.outdir / "01_orthofinder"
         self.ortho_aln_dir = self.outdir / "02_ortho_align"
@@ -30,7 +37,11 @@ class Config:
         self.dtl_dir = self.outdir / "06_dtl_reconciliation"
         self.dtl_event_map_dir = self.outdir / "07_dtl_event_map"
 
+        self.ortho_tmpwork_dir = self.fasta_dir / "OrthoFinder"
+
         self.user_tree_file = self.outdir / "user_tree.nwk"
+        self.ultrametric_tree_file = self.outdir / "user_ultrametric_tree.nwk"
+        self.nodeid_tree_file = self.outdir / "user_ultrametric_nodeid_tree.nwk"
 
         self.ortho_group_fasta_dir = self.ortho_dir / "Orthogroup_Sequences"
 
@@ -41,9 +52,8 @@ class Config:
 
     def _makedirs(self) -> None:
         """Create config output directories"""
-        # Check OrthoFinder previous work dir
+        # Check & Delete OrthoFinder previous work dir
         if self.ortho_tmpwork_dir.exists():
-            # IF exists delete
             shutil.rmtree(self.ortho_tmpwork_dir)
 
         # Make configured output directory
@@ -65,17 +75,22 @@ class Config:
         bin_path = Path(__file__).parent.parent / "bin"
         mafft_path = bin_path / "mafft"
         ortho_finder_path = bin_path / "OrthoFinder"
+        ortho_finder_tool_path = ortho_finder_path / "tools"
         # Add bin path
         env_path = os.environ["PATH"]
         env_path = f"{bin_path}:{env_path}"
         env_path = f"{mafft_path}:{env_path}"
         env_path = f"{ortho_finder_path}:{env_path}"
+        env_path = f"{ortho_finder_tool_path}:{env_path}"
         # Set fixed path
         os.environ["PATH"] = env_path
 
-    def lsd_cmd(self, nwk_tree_file: str, outfile_prefix: str) -> str:
-        """Get lsd run command"""
-        return f"lsd -i {nwk_tree_file} -o {outfile_prefix}"
+    def make_ultrametric_cmd(self, nwk_tree_infile: str, nwk_tree_outfile: str) -> str:
+        """Get make_ultrametric run command"""
+        return (
+            f"make_ultrametric.py {nwk_tree_infile} {nwk_tree_outfile} "
+            + "> /dev/null 2>&1"
+        )
 
     def orthofinder_cmd(self, fasta_indir: str) -> str:
         """Get OrthoFinder run command"""
@@ -101,13 +116,17 @@ class Config:
         return (
             f"OptRoot -q -i {gene_tree_infile} -o {rooted_gene_tree_outfile} "
             + f"-D {self.dup_cost} -L {self.los_cost} -T {self.trn_cost} "
-            + f"-r --seed {self.rseed} --type 2 --thr 1 --add 1 > /dev/null 2>&1"
+            + f"-r --seed {self.rseed} --type 2 > /dev/null 2>&1"
         )
 
     def mowgli_cmd(
         self, species_tree_infile: str, gene_tree_infile, outdir: str
     ) -> str:
-        """Get Mowgli run command"""
+        """Get Mowgli run command
+
+        Note:
+            Mowgli cannot handle node id tagged tree (e.g. N001)
+        """
         return (
             f"Mowgli -s {species_tree_infile} -g {gene_tree_infile} -o {outdir} "
             + f"-d={self.dup_cost} -l={self.los_cost} -t={self.trn_cost} "
@@ -116,6 +135,7 @@ class Config:
 
     def parallel_cmd(self, cmd_list: List[str]) -> None:
         """Get parallel run command from command list"""
+        # TODO: Logging parallel command list
         # Write parallel cmd list file
         random.shuffle(cmd_list)
         with open(self.parallel_cmds_tmp_file, "w") as f:
@@ -135,7 +155,7 @@ def get_config() -> Config:
         Config: Config Class
     """
     parser = argparse.ArgumentParser(
-        description="Genome-wide DTL(Duplication-Transfer-Loss) event mapping tool"
+        description="Fast Genome-wide DTL event mapping tool"
     )
 
     parser.add_argument(
@@ -143,12 +163,12 @@ def get_config() -> Config:
         "--indir",
         required=True,
         type=Path,
-        help="Input Fasta(*.fa|*.faa|*.fasta) or Genbank(*.gb|*.gbk) directory",
+        help="Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.genbank) directory",
         metavar="",
     )
     parser.add_argument(
         "-t",
-        "--tree",
+        "--tree_file",
         required=True,
         type=Path,
         help="Input rooted species time(ultrametric) tree file (Newick format)",
@@ -167,7 +187,7 @@ def get_config() -> Config:
         "-p",
         "--process_num",
         type=int,
-        help=f"Processor number (Default: {default_processor_num})",
+        help=f"Number of processor (Default: {default_processor_num})",
         default=default_processor_num,
         metavar="",
     )
@@ -199,7 +219,7 @@ def get_config() -> Config:
     parser.add_argument(
         "--rseed",
         type=int,
-        help=f"Random seed number (Default: {default_rseed})",
+        help=f"Number of random seed (Default: {default_rseed})",
         default=default_rseed,
         metavar="",
     )
@@ -208,7 +228,7 @@ def get_config() -> Config:
 
     return Config(
         args.indir,
-        args.tree,
+        args.tree_file,
         args.outdir,
         args.process_num,
         args.dup_cost,

@@ -8,11 +8,15 @@ class Transfer:
 
     donor_node_id: Union[int, str]
     recipient_node_id: Union[int, str]
+    direction: bool = True
 
     @property
     def as_text(self) -> str:
         """Transfer as text format (e.g. 1 -> 2)"""
-        return f"{self.donor_node_id} -> {self.recipient_node_id}"
+        if self.direction:
+            return f"{self.donor_node_id} -> {self.recipient_node_id}"
+        else:
+            return f"{self.donor_node_id} <-> {self.recipient_node_id}"
 
 
 @dataclass

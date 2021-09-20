@@ -49,7 +49,7 @@ class MowgliXmlParser:
             BeautifulSoup: Beautifulsoup xml parsed object
         """
         with open(self.mowgli_xml_file) as f:
-            # Replace invalid character ':' to '_'
+            # Replace invalid parsable character ':' to '_'
             xml_string = f.read().replace(":", "_")
         return BeautifulSoup(xml_string, "lxml")
 
