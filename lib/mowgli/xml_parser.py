@@ -39,7 +39,7 @@ class MowgliXmlParser:
                 trn_detail_list.append(trn)
         brn_num = 1 if self._brn_node_id == target_node_id else 0
         return NodeEvent(
-            target_node_id, dup_num, los_num, trn_num, trn_detail_list, brn_num
+            target_node_id, brn_num, dup_num, los_num, trn_num, trn_detail_list
         )
 
     def _read_xml(self) -> BeautifulSoup:

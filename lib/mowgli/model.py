@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
 
@@ -24,11 +24,11 @@ class NodeEvent:
     """Node Event DataClass"""
 
     node_id: int
-    dup_num: int
-    los_num: int
-    trn_num: int
-    trn_detail_list: List[Transfer]
-    brn_num: int
+    brn_num: int = 0
+    dup_num: int = 0
+    los_num: int = 0
+    trn_num: int = 0
+    trn_detail_list: List[Transfer] = field(default_factory=list)
     gene_num: Optional[int] = None
 
     @property

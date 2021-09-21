@@ -82,3 +82,19 @@ class UtilSeq:
                 cds_seq_record_list.append(cds_seq_record)
 
         SeqIO.write(cds_seq_record_list, fasta_outfile, "fasta-2line")
+
+    @staticmethod
+    def get_uniq_species_name_list(fasta_file: str) -> List[str]:
+        """Get fasta unique species name list
+
+        Args:
+            fasta_file (str): Fasta file path
+
+        Returns:
+            List[str]: Sequence id list
+        """
+        species_name_list = []
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            species_name = "_".join(record.id.split("_")[:-1])
+            species_name_list.append(species_name)
+        return list(set(species_name_list))
