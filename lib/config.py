@@ -20,6 +20,7 @@ class Config:
     dup_cost: int
     los_cost: int
     trn_cost: int
+    inflation: float
     rseed: int
 
     def __post_init__(self):
@@ -152,6 +153,7 @@ class Config:
         output_log += f"Duplication event cost = {self.dup_cost}\n"
         output_log += f"Loss event cost = {self.los_cost}\n"
         output_log += f"Transfer event cost = {self.trn_cost}\n"
+        output_log += f"MCL inflation parameter = {self.inflation}\n"
         output_log += f"Number of random seed = {self.rseed}\n"
         output_log += "\n"
         output_log += f"Elapsed time = {elapsed_time:.2f}[h]"
@@ -165,7 +167,10 @@ class Config:
 
     def orthofinder_cmd(self, fasta_indir: str) -> str:
         """Get OrthoFinder run command"""
-        return f"orthofinder.py -og -f {fasta_indir} -t {self.process_num}"
+        return (
+            f"orthofinder.py -og -f {fasta_indir} -t {self.process_num} "
+            + f"-I {self.inflation}"
+        )
 
     def mafft_cmd(self, fasta_infile: str, aln_outfile: str) -> str:
         """Get mafft run command"""
@@ -245,15 +250,15 @@ def get_config() -> Config:
         required=True,
         type=Path,
         help="Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.genbank) directory",
-        metavar="",
+        metavar="IN",
     )
     parser.add_argument(
         "-t",
-        "--treefile",
+        "--tree",
         required=True,
         type=Path,
         help="Input rooted species time(ultrametric) tree file (Newick format)",
-        metavar="",
+        metavar="TREE",
     )
     parser.add_argument(
         "-o",
@@ -261,7 +266,7 @@ def get_config() -> Config:
         required=True,
         type=Path,
         help="Output directory",
-        metavar="",
+        metavar="OUT",
     )
     default_processor_num = os.cpu_count() - 1
     parser.add_argument(
@@ -296,6 +301,14 @@ def get_config() -> Config:
         default=default_trn_cost,
         metavar="",
     )
+    default_inflation = 3.0
+    parser.add_argument(
+        "--inflation",
+        type=float,
+        help=f"MCL inflation parameter (Default: {default_inflation})",
+        default=default_inflation,
+        metavar="",
+    )
     default_rseed = 0
     parser.add_argument(
         "--rseed",
@@ -309,11 +322,12 @@ def get_config() -> Config:
 
     return Config(
         args.indir,
-        args.treefile,
+        args.tree,
         args.outdir,
         args.process_num,
         args.dup_cost,
         args.los_cost,
         args.trn_cost,
+        args.inflation,
         args.rseed,
     )
