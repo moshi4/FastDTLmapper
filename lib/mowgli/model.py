@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
@@ -74,3 +76,18 @@ class NodeEvent:
         """Node event tsv format text"""
         csv_text = self.as_csv_format
         return csv_text.replace(",", "\t")
+
+    def __add__(self, other: NodeEvent):
+        if not isinstance(other, self.__class__) and self.node_id != other.node_id:
+            raise NotImplementedError()
+
+        ret_obj = NodeEvent(self.node_id)
+        ret_obj.brn_num = self.brn_num + other.brn_num
+        ret_obj.dup_num = self.dup_num + other.dup_num
+        ret_obj.los_num = self.los_num + other.los_num
+        ret_obj.trn_num = self.trn_num + other.trn_num
+        ret_obj.gene_num = self.gene_num + other.gene_num
+        ret_obj.trn_detail_list.extend(self.trn_detail_list)
+        ret_obj.trn_detail_list.extend(other.trn_detail_list)
+
+        return ret_obj

@@ -68,13 +68,14 @@ class MowgliXmlParser:
         Returns:
             int: Gene born node id
         """
-        normal_brn_node_tag = self._soup.select_one("rec_locationSp")
+        brn_event_tag = self._soup.select_one("rec_event")
+        normal_brn_node_tag = brn_event_tag.select_one("rec_locationSp")
         if normal_brn_node_tag is not None:
             return int(normal_brn_node_tag.text)
         else:
-            # Case: Transfer event only
-            transfer_only_brn_node_tag = self._soup.select_one("rec_originSp")
-            return int(transfer_only_brn_node_tag.text)
+            # Case: Brn and after trn event
+            transfer_brn_node_tag = brn_event_tag.select_one("rec_originSp")
+            return int(transfer_brn_node_tag.text)
 
     def _get_dup_node_id_list(self) -> List[int]:
         """Get duplication node id list

@@ -78,7 +78,6 @@ class Reconciliation:
         mrca_brn_los_scenario_cost = los_cost * len(los_node_names)
         if trn_cost >= mrca_brn_los_scenario_cost:
             # Case: mrca brn and other species los gene
-            print("los scenario.")
             for node in tree.find_clades():
                 if node.name == mrca_node.name:
                     node_event_list.append(NodeEvent(node.name, brn_num=1, gene_num=1))
@@ -95,7 +94,6 @@ class Reconciliation:
             return node_event_list
         else:
             # Case: brn in one species and trn other species
-            print("trn scenario.")
             for node in tree.find_clades():
                 if node.name == sp1:
                     node_event_list.append(NodeEvent(node.name, brn_num=1, gene_num=1))

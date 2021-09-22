@@ -1,6 +1,7 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -98,3 +99,19 @@ class UtilSeq:
             species_name = "_".join(record.id.split("_")[:-1])
             species_name_list.append(species_name)
         return list(set(species_name_list))
+
+    @staticmethod
+    def get_species_name2seq_num(fasta_file: str) -> Dict[str, int]:
+        """Get species_name & seq_num dict
+
+        Args:
+            fasta_file (str): Fasta file path
+
+        Returns:
+            Dict[str, int]: key: species_name, value: seq_num
+        """
+        species_name2seq_num = defaultdict(int)
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            species_name = "_".join(record.id.split("_")[:-1])
+            species_name2seq_num[species_name] += 1
+        return species_name2seq_num
