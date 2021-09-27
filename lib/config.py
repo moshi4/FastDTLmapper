@@ -21,7 +21,7 @@ class Config:
     los_cost: int
     trn_cost: int
     inflation: float
-    nni_move_thr: int
+    timetree: bool
     rseed: int
 
     def __post_init__(self):
@@ -59,9 +59,7 @@ class Config:
 
         self.mafft_stderr_log_file = self.cmd_stderr_log_dir / "mafft_stderr.log"
         self.trimal_stderr_log_file = self.cmd_stderr_log_dir / "trimal_stderr.log"
-        self.fasttree_stderr_log_file = self.cmd_stderr_log_dir / "fasttree_stderr.log"
-        self.optroot_stderr_log_file = self.cmd_stderr_log_dir / "optroot_stderr.log"
-        self.mowgli_stderr_log_file = self.cmd_stderr_log_dir / "mowgli_stderr.log"
+        self.iqtree_stderr_log_file = self.cmd_stderr_log_dir / "iqtree_stderr.log"
 
         self._makedirs()
         self._delete_prev_stderr_log()
@@ -91,7 +89,7 @@ class Config:
         for stderr_log_file in (
             self.mafft_stderr_log_file,
             self.trimal_stderr_log_file,
-            self.fasttree_stderr_log_file,
+            self.iqtree_stderr_log_file,
             self.optroot_stderr_log_file,
             self.mowgli_stderr_log_file,
         ):
@@ -104,12 +102,14 @@ class Config:
         mafft_path = bin_path / "mafft"
         ortho_finder_path = bin_path / "OrthoFinder"
         ortho_finder_tool_path = ortho_finder_path / "tools"
+        angst_path = bin_path / "angst" / "angst_lib"
         # Add bin path
         env_path = os.environ["PATH"]
         env_path = f"{bin_path}:{env_path}"
         env_path = f"{mafft_path}:{env_path}"
         env_path = f"{ortho_finder_path}:{env_path}"
         env_path = f"{ortho_finder_tool_path}:{env_path}"
+        env_path = f"{angst_path}:{env_path}"
         # Set fixed path
         os.environ["PATH"] = env_path
 
@@ -120,9 +120,9 @@ class Config:
             "orthofinder.py",
             "mafft",
             "trimal",
-            "FastTree",
-            "OptRoot-Dated",
-            "Mowgli",
+            "iqtree",
+            "AnGST.py",
+            "AnGST_wrapper.py",
             "parallel",
         ]
         bin_exists_check_flg = False
@@ -157,7 +157,6 @@ class Config:
         output_log += f"Loss event cost = {self.los_cost}\n"
         output_log += f"Transfer event cost = {self.trn_cost}\n"
         output_log += f"MCL inflation parameter = {self.inflation}\n"
-        output_log += f"NNI move bootstrap threshold ={self.nni_move_thr}\n"
         output_log += f"Number of random seed = {self.rseed}\n"
         output_log += "\n"
         output_log += f"Elapsed time = {elapsed_time:.2f}[h]"
@@ -190,39 +189,22 @@ class Config:
             + f"2>> {self.trimal_stderr_log_file}"
         )
 
-    def fasttree_cmd(self, aln_infile: str, tree_outfile: str) -> str:
-        """Get FastTree run command"""
+    def iqtree_cmd(self, aln_infile: str, prefix: str) -> str:
+        """Get iqtree run command"""
+        # TODO: Set model parameter from argument
         return (
-            f"FastTree -quiet -seed {self.rseed} {aln_infile} > {tree_outfile} "
-            + f"2>> {self.fasttree_stderr_log_file}"
+            f"iqtree -s {aln_infile} --prefix {prefix} -m TEST -mset JTT,WAG,LG "
+            + f"--seed {self.rseed} --ufboot 1000 --boot-trees --wbtl --redo --quiet "
+            + f"2>>  {self.iqtree_stderr_log_file} "
         )
 
-    def optroot_cmd(self, gene_tree_infile: str, rooted_gene_tree_outfile: str) -> str:
-        """Get OptRoot run command
-
-        Note:
-            OptRoot cannot handle float bootstrap value (e.g. NG: 0.987, OK: 98)
-        """
+    def angst_cmd(self, species_tree_file: str, boot_tree_file: str, outdir: str):
+        """Get AnGST run command"""
+        timetree = "--timetree" if self.timetree else ""
         return (
-            f"OptRoot-Dated -q -i {gene_tree_infile} -o {rooted_gene_tree_outfile} "
-            + f"-D {self.dup_cost} -L {self.los_cost} -T {self.trn_cost} "
-            + f"-r --seed {self.rseed} "
-            + f"2>> {self.optroot_stderr_log_file}"
-        )
-
-    def mowgli_cmd(
-        self, species_tree_infile: str, gene_tree_infile, outdir: str
-    ) -> str:
-        """Get Mowgli run command
-
-        Note:
-            Mowgli cannot handle node id tagged tree (e.g. N001)
-        """
-        return (
-            f"Mowgli -s {species_tree_infile} -g {gene_tree_infile} -o {outdir} "
-            + f"-d={self.dup_cost} -l={self.los_cost} -t={self.trn_cost} "
-            + f"-n 1 -T {self.nni_move_thr} "
-            + f"2>> {self.mowgli_stderr_log_file}"
+            f"AnGST_wrapper.py -s {species_tree_file} -g {boot_tree_file} -o {outdir} "
+            + f"--dup_cost {self.dup_cost} --los_cost {self.los_cost} "
+            + f"--trn_cost {self.trn_cost} {timetree} "
         )
 
     def parallel_cmd(self, cmd_list: List[str], prog_name: str) -> None:
@@ -314,13 +296,10 @@ def get_config() -> Config:
         default=default_inflation,
         metavar="",
     )
-    default_nni_move_thr = 90
     parser.add_argument(
-        "--nni_move_thr",
-        type=int,
-        help=f"Mowgli NNI move bootstrap threshold (Default: {default_nni_move_thr})",
-        default=default_nni_move_thr,
-        metavar="",
+        "--timetree",
+        help="Use species tree as timetree",
+        action="store_true",
     )
     default_rseed = 0
     parser.add_argument(
@@ -342,6 +321,6 @@ def get_config() -> Config:
         args.los_cost,
         args.trn_cost,
         args.inflation,
-        args.nni_move_thr,
+        args.timetree,
         args.rseed,
     )

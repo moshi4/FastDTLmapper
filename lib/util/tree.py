@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from Bio import Phylo
+from Bio import Phylo, SeqIO
 from Bio.Phylo.BaseTree import Tree
 from lib.mowgli.model import NodeEvent
 
@@ -9,23 +9,6 @@ from lib.mowgli.model import NodeEvent
 @dataclass
 class UtilTree:
     """Tree Utility Class"""
-
-    @staticmethod
-    def convert_bootstrap_float_to_int(
-        nwk_tree_infile: str, nwk_tree_outfile: str
-    ) -> None:
-        """Convert tree bootstrap value float to int (e.g. 0.978 -> 98)
-
-        Args:
-            nwk_tree_infile (str): Input newick format tree file path
-            nwk_tree_outfile (str): Output newick format tree file path
-        """
-        tree: Tree = Phylo.read(nwk_tree_infile, "newick")
-        for node in tree.get_nonterminals():
-            if node.confidence is None or node.confidence > 1:
-                continue
-            node.confidence = int(float(node.confidence) * 100)
-        Phylo.write(tree, nwk_tree_outfile, "newick", format_confidence="%d")
 
     @staticmethod
     def add_internal_node_id(nwk_tree_infile: str, nwk_tree_outfile: str) -> None:
@@ -46,6 +29,26 @@ class UtilTree:
             replace_tree_info = f.read().replace(":0.000000;", ";").replace("'", "")
         with open(nwk_tree_outfile, "w") as f:
             f.write(replace_tree_info)
+
+    @staticmethod
+    def make_3genes_tree(fasta_file: str, gene_tree_file: str) -> None:
+        """Make 3 genes unrooted newick tree file
+
+        Args:
+            fasta_file (str): Input fasta file path
+            gene_tree_file (str): Output newick tree file path
+        """
+        gene_name_list = []
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            gene_name_list.append(record.id)
+
+        gene_tree_info = "("
+        for gene_name in gene_name_list:
+            gene_tree_info += f"{gene_name}:0.01,"
+        gene_tree_info = gene_tree_info.rstrip(",")
+        gene_tree_info += ");"
+        with open(gene_tree_file, "w") as f:
+            f.write(gene_tree_info)
 
     @staticmethod
     def map_node_event(

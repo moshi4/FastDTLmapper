@@ -18,18 +18,16 @@ def main(config: Config):
     # # 00. Prepare analysis data
     format_user_tree(config)
     format_user_fasta(config)
-    # # 01. Grouping ortholog sequences using OrthoFinder
+    # 01. Grouping ortholog sequences using OrthoFinder
     orthofinder_run(config)
-    # # 02. Align each OG(Ortholog Group) sequences using mafft
+    # 02. Align each OG(Ortholog Group) sequences using mafft
     mafft_run(config)
-    # # 03. Trim each OG alignment using trimal
+    # 03. Trim each OG alignment using trimal
     trimal_run(config)
-    # # 04. Reconstruct each OG gene tree using FastTree
-    fasttree_run(config)
-    # # 05. Rooting each OG gene tree using OptRoot
-    optroot_run(config)
-    # # 06. 'Species tree' & 'each OG gene tree' DTL reconciliation using Mowgli
-    mowgli_run(config)
+    # 04. Reconstruct each OG gene tree using iqtree
+    iqtree_run(config)
+    # 05. DTL reconciliation using AnGST
+    angst_run(config)
     # 07. Aggregate and map DTL reconciliation result
     group_id2all_node_event = aggregate_dtl_results(config)
     output_aggregate_map_results(config, group_id2all_node_event)
@@ -125,70 +123,38 @@ def trimal_run(config: Config) -> None:
             shutil.copy(aln_file, aln_trim_file)
 
 
-def fasttree_run(config: Config) -> None:
-    """Run FastTree"""
-    print("# 04. Reconstruct each OG gene tree using FastTree")
-    fasttree_cmd_list = []
+def iqtree_run(config: Config) -> None:
+    """Run iqtree"""
+    print("# 04. Reconstruct each OG gene tree using iqtree")
+    iqtree_cmd_list = []
     for aln_trim_file in sorted(config.dtl_rec_dir.glob("**/*_aln_trim.fa")):
         group_id = aln_trim_file.parent.name
-        gene_tree_file = aln_trim_file.parent / (group_id + "_unrooted_tree.nwk")
-        fasttree_cmd = config.fasttree_cmd(aln_trim_file, gene_tree_file)
-        fasttree_cmd_list.append(fasttree_cmd)
+        iqtree_outdir = aln_trim_file.parent / "gene_tree"
+        iqtree_outdir.mkdir(exist_ok=True)
+        iqtree_prefix = iqtree_outdir / group_id
+        if UtilSeq.count_fasta_seq(aln_trim_file) >= 4:
+            iqtree_cmd = config.iqtree_cmd(aln_trim_file, iqtree_prefix)
+            iqtree_cmd_list.append(iqtree_cmd)
+        else:
+            # iqtree cannot handle 3 genes tree
+            gene_tree_file = iqtree_outdir / (group_id + ".ufboot")
+            UtilTree.make_3genes_tree(aln_trim_file, gene_tree_file)
 
-    fasttree_parallel_cmd = config.parallel_cmd(fasttree_cmd_list, "FastTree")
+    fasttree_parallel_cmd = config.parallel_cmd(iqtree_cmd_list, "iqtree")
     sp.run(fasttree_parallel_cmd, shell=True)
 
 
-def optroot_run(config: Config) -> None:
-    """Run OptRoot"""
-    print("# 05. Rooting each OG gene tree using OptRoot")
-    optroot_cmd_list = []
-    optroot_tmp_infile_list, optroot_outfile_list = [], []
-    for gene_tree_file in sorted(config.dtl_rec_dir.glob("**/*_unrooted_tree.nwk")):
-        group_id = gene_tree_file.parent.name
-        # OptRoot cannot handle float bootstrap value
-        UtilTree.convert_bootstrap_float_to_int(gene_tree_file, gene_tree_file)
-        # Make OptRoot input tmpfile (species tree & gene tree mixed newick file)
-        optroot_tmp_infile = gene_tree_file.parent / ("tmp" + gene_tree_file.name)
-        concat_cmd = (
-            f"cat {config.um_tree_file} {gene_tree_file} > {optroot_tmp_infile}"
-        )
-        sp.run(concat_cmd, shell=True)
-
-        optroot_outfile = gene_tree_file.parent / (gene_tree_file.stem + ".txt")
-        optroot_cmd = config.optroot_cmd(optroot_tmp_infile, optroot_outfile)
-
-        optroot_outfile_list.append(optroot_outfile)
-        optroot_tmp_infile_list.append(optroot_tmp_infile)
-        optroot_cmd_list.append(optroot_cmd)
-
-    optroot_parallel_cmd = config.parallel_cmd(optroot_cmd_list, "OptRoot")
-    sp.run(optroot_parallel_cmd, shell=True)
-    # Delete tmp files
-    [tmp_file.unlink() for tmp_file in optroot_tmp_infile_list]
-
-    # Extract rooted gene tree content from optroot result
-    for optroot_outfile in optroot_outfile_list:
-        group_id = optroot_outfile.parent.stem
-        rooted_gene_tree_file = optroot_outfile.with_name(f"{group_id}_rooted_tree.nwk")
-        extract_cmd = f"cat {optroot_outfile} | grep ';' > {rooted_gene_tree_file}"
-        sp.run(extract_cmd, shell=True)
-    # Delete unnecessary optroot result files
-    [out_file.unlink() for out_file in optroot_outfile_list]
-
-
-def mowgli_run(config: Config) -> None:
-    """Run Mowgli"""
-    print("# 06. 'Species tree' & 'each OG gene tree' DTL reconciliation using Mowgli")
-    mowgli_cmd_list = []
-    for rooted_tree_file in sorted(config.dtl_rec_dir.glob("**/*_rooted_tree.nwk")):
-        outdir = rooted_tree_file.parent / "dtl_reconciliation"
+def angst_run(config: Config) -> None:
+    """Run AnGST"""
+    angst_cmd_list = []
+    for boot_tree_file in sorted(config.dtl_rec_dir.glob("**/*.ufboot")):
+        outdir = boot_tree_file.parent.parent / "AnGST"
         outdir.mkdir(exist_ok=True)
-        mowgli_cmd = config.mowgli_cmd(config.um_tree_file, rooted_tree_file, outdir)
-        mowgli_cmd_list.append(mowgli_cmd)
+        angst_cmd = config.angst_cmd(config.um_tree_file, boot_tree_file, outdir)
+        angst_cmd_list.append(angst_cmd)
 
-    mowgli_parallel_cmd = config.parallel_cmd(mowgli_cmd_list, "Mowgli")
-    sp.run(mowgli_parallel_cmd, shell=True)
+    angst_parallel_cmd = config.parallel_cmd(angst_cmd_list, "AnGST")
+    sp.run(angst_parallel_cmd, shell=True)
 
 
 def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
