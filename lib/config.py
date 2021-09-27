@@ -2,6 +2,8 @@ import argparse
 import os
 import random
 import shutil
+import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -18,37 +20,53 @@ class Config:
     dup_cost: int
     los_cost: int
     trn_cost: int
+    inflation: float
+    nni_move_thr: int
     rseed: int
 
     def __post_init__(self):
-        # TODO: Fix directory structure
-        # 00_user_data -> dir:fasta, tree
-        # 01_orthofinder (Raw result)
-        # 02_dtl_reconciliation -> dir:OGname
-        #    -> file: OGfasta, aln, trim,  tree, rooted_tree, dir: mowgli
-        # 03_aggregate_dtl_result -> file: all_dtl_map, all_gl_map, all_node_event_tsv
-        # log -> dir: dependent programe names -> file: command.txt, output.txt
-        self.fasta_dir = self.outdir / "00_fasta"
+        self.start_time = time.time()
+        # 00. User fasta & tree directory
+        self.user_data_dir = self.outdir / "00_user_data"
+        self.user_fasta_dir = self.user_data_dir / "fasta"
+        self.user_tree_dir = self.user_data_dir / "tree"
+
+        self.user_tree_file = self.user_tree_dir / "user_tree.nwk"
+        self.um_tree_file = self.user_tree_dir / "ultrametric_tree.nwk"
+        self.um_nodeid_tree_file = self.user_tree_dir / "ultrametric_nodeid_tree.nwk"
+
+        # 01. OrthoFinder directory
         self.ortho_dir = self.outdir / "01_orthofinder"
-        self.ortho_aln_dir = self.outdir / "02_ortho_align"
-        self.ortho_aln_trim_dir = self.outdir / "03_ortho_align_trim"
-        self.gene_tree_dir = self.outdir / "04_gene_tree"
-        self.rooted_gene_tree_dir = self.outdir / "05_rooted_gene_tree"
-        self.dtl_dir = self.outdir / "06_dtl_reconciliation"
-        self.dtl_event_map_dir = self.outdir / "07_dtl_event_map"
-
-        self.ortho_tmpwork_dir = self.fasta_dir / "OrthoFinder"
-
-        self.user_tree_file = self.outdir / "user_tree.nwk"
-        self.ultrametric_tree_file = self.outdir / "user_ultrametric_tree.nwk"
-        self.nodeid_tree_file = self.outdir / "user_ultrametric_nodeid_tree.nwk"
-
         self.ortho_group_fasta_dir = self.ortho_dir / "Orthogroup_Sequences"
+        self.ortho_tmpwork_dir = self.user_fasta_dir / "OrthoFinder"
 
-        self.parallel_cmds_tmp_file = self.outdir / "parallel_cmds_tmp.txt"
+        # 02. DTL reconciliation directory
+        self.dtl_rec_dir = self.outdir / "02_dtl_reconciliation"
+
+        # 03. All group node DTL event aggregate map directory
+        self.aggregate_map_dir = self.outdir / "03_aggregate_map_result"
+
+        self.all_dtl_map_file = self.aggregate_map_dir / "all_dtl_map.nwk"
+        self.all_gain_loss_map_file = self.aggregate_map_dir / "all_gain_loss_map.nwk"
+        self.all_node_event_file = self.aggregate_map_dir / "all_group_node_event.tsv"
+
+        # Log commands list and command stderr
+        self.log_dir = self.outdir / "log"
+        self.parallel_cmds_log_dir = self.log_dir / "parallel_cmds"
+        self.cmd_stderr_log_dir = self.log_dir / "cmds_stderr"
+
+        self.run_config_log_file = self.log_dir / "run_config.log"
+
+        self.mafft_stderr_log_file = self.cmd_stderr_log_dir / "mafft_stderr.log"
+        self.trimal_stderr_log_file = self.cmd_stderr_log_dir / "trimal_stderr.log"
+        self.fasttree_stderr_log_file = self.cmd_stderr_log_dir / "fasttree_stderr.log"
+        self.optroot_stderr_log_file = self.cmd_stderr_log_dir / "optroot_stderr.log"
+        self.mowgli_stderr_log_file = self.cmd_stderr_log_dir / "mowgli_stderr.log"
 
         self._makedirs()
+        self._delete_prev_stderr_log()
         self._add_bin_path()
+        self._bin_exists_check()
 
     def _makedirs(self) -> None:
         """Create config output directories"""
@@ -58,16 +76,26 @@ class Config:
 
         # Make configured output directory
         for target_dir in (
-            self.fasta_dir,
+            self.user_fasta_dir,
+            self.user_tree_dir,
             self.ortho_dir,
-            self.ortho_aln_dir,
-            self.ortho_aln_trim_dir,
-            self.gene_tree_dir,
-            self.rooted_gene_tree_dir,
-            self.dtl_dir,
-            self.dtl_event_map_dir,
+            self.dtl_rec_dir,
+            self.aggregate_map_dir,
+            self.parallel_cmds_log_dir,
+            self.cmd_stderr_log_dir,
         ):
             os.makedirs(target_dir, exist_ok=True)
+
+    def _delete_prev_stderr_log(self) -> None:
+        """Delete previous stderr log"""
+        for stderr_log_file in (
+            self.mafft_stderr_log_file,
+            self.trimal_stderr_log_file,
+            self.fasttree_stderr_log_file,
+            self.optroot_stderr_log_file,
+            self.mowgli_stderr_log_file,
+        ):
+            stderr_log_file.unlink(missing_ok=True)
 
     def _add_bin_path(self) -> None:
         """Add bin programs path"""
@@ -85,38 +113,101 @@ class Config:
         # Set fixed path
         os.environ["PATH"] = env_path
 
+    def _bin_exists_check(self) -> None:
+        """Check bin program exists"""
+        bin_list = [
+            "make_ultrametric.py",
+            "orthofinder.py",
+            "mafft",
+            "trimal",
+            "FastTree",
+            "OptRoot-Dated",
+            "Mowgli",
+            "parallel",
+        ]
+        bin_exists_check_flg = False
+        print("Required bin program exists check...")
+        for bin in bin_list:
+            bin_path = shutil.which(bin)
+            if bin_path:
+                print(f"OK '{bin}' (Path={bin_path})")
+            else:
+                print(f"NG '{bin}' (Path=Not exists)")
+                bin_exists_check_flg = True
+        if bin_exists_check_flg:
+            print("Required bin program not exist!!\n")
+            exit(1)
+        else:
+            print("All required bin programs exists.\n")
+
+    def output_run_config_log(self):
+        """Output run config log file"""
+        run_command = " ".join(sys.argv)
+        elapsed_time = (time.time() - self.start_time) / 3600
+
+        output_log = ""
+        output_log += "Run command:\n"
+        output_log += f"{run_command}\n"
+        output_log += "\n"
+        output_log += f"Input directory = {self.indir}\n"
+        output_log += f"Tree file = {self.tree_file}\n"
+        output_log += f"Output directory = {self.outdir}\n"
+        output_log += f"Number of processor = {self.process_num}\n"
+        output_log += f"Duplication event cost = {self.dup_cost}\n"
+        output_log += f"Loss event cost = {self.los_cost}\n"
+        output_log += f"Transfer event cost = {self.trn_cost}\n"
+        output_log += f"MCL inflation parameter = {self.inflation}\n"
+        output_log += f"NNI move bootstrap threshold ={self.nni_move_thr}\n"
+        output_log += f"Number of random seed = {self.rseed}\n"
+        output_log += "\n"
+        output_log += f"Elapsed time = {elapsed_time:.2f}[h]"
+
+        with open(self.run_config_log_file, "w") as f:
+            f.write(output_log)
+
     def make_ultrametric_cmd(self, nwk_tree_infile: str, nwk_tree_outfile: str) -> str:
         """Get make_ultrametric run command"""
-        return (
-            f"make_ultrametric.py {nwk_tree_infile} {nwk_tree_outfile} "
-            + "> /dev/null 2>&1"
-        )
+        return f"make_ultrametric.py {nwk_tree_infile} {nwk_tree_outfile} "
 
     def orthofinder_cmd(self, fasta_indir: str) -> str:
         """Get OrthoFinder run command"""
-        return f"orthofinder.py -og -f {fasta_indir} -t {self.process_num}"
+        return (
+            f"orthofinder.py -og -f {fasta_indir} -t {self.process_num} "
+            + f"-I {self.inflation}"
+        )
 
     def mafft_cmd(self, fasta_infile: str, aln_outfile: str) -> str:
         """Get mafft run command"""
-        return f"mafft --auto --quiet {fasta_infile} > {aln_outfile}"
+        return (
+            f"mafft --auto --anysymbol --quiet {fasta_infile} > {aln_outfile} "
+            + f"2>> {self.mafft_stderr_log_file}"
+        )
 
     def trimal_cmd(self, aln_infile: str, aln_trim_outfile: str) -> str:
         """Get trimal run command"""
         return (
             f"trimal -in {aln_infile} -out {aln_trim_outfile} -automated1 "
-            + "> /dev/null 2>&1"
+            + f"2>> {self.trimal_stderr_log_file}"
         )
 
     def fasttree_cmd(self, aln_infile: str, tree_outfile: str) -> str:
         """Get FastTree run command"""
-        return f"FastTree -quiet -seed {self.rseed} {aln_infile} > {tree_outfile}"
+        return (
+            f"FastTree -quiet -seed {self.rseed} {aln_infile} > {tree_outfile} "
+            + f"2>> {self.fasttree_stderr_log_file}"
+        )
 
     def optroot_cmd(self, gene_tree_infile: str, rooted_gene_tree_outfile: str) -> str:
-        """Get OptRoot run command"""
+        """Get OptRoot run command
+
+        Note:
+            OptRoot cannot handle float bootstrap value (e.g. NG: 0.987, OK: 98)
+        """
         return (
-            f"OptRoot -q -i {gene_tree_infile} -o {rooted_gene_tree_outfile} "
+            f"OptRoot-Dated -q -i {gene_tree_infile} -o {rooted_gene_tree_outfile} "
             + f"-D {self.dup_cost} -L {self.los_cost} -T {self.trn_cost} "
-            + f"-r --seed {self.rseed} --type 2 > /dev/null 2>&1"
+            + f"-r --seed {self.rseed} "
+            + f"2>> {self.optroot_stderr_log_file}"
         )
 
     def mowgli_cmd(
@@ -130,21 +221,21 @@ class Config:
         return (
             f"Mowgli -s {species_tree_infile} -g {gene_tree_infile} -o {outdir} "
             + f"-d={self.dup_cost} -l={self.los_cost} -t={self.trn_cost} "
-            + "-n 1 -T 80"
+            + f"-n 1 -T {self.nni_move_thr} "
+            + f"2>> {self.mowgli_stderr_log_file}"
         )
 
-    def parallel_cmd(self, cmd_list: List[str]) -> None:
+    def parallel_cmd(self, cmd_list: List[str], prog_name: str) -> None:
         """Get parallel run command from command list"""
-        # TODO: Logging parallel command list
-        # Write parallel cmd list file
+        random.seed(self.rseed)
         random.shuffle(cmd_list)
-        with open(self.parallel_cmds_tmp_file, "w") as f:
+        parallel_cmds_file = self.parallel_cmds_log_dir / (prog_name + "_cmds.log")
+        with open(parallel_cmds_file, "w") as f:
             for cmd in cmd_list:
                 f.write(cmd + "\n")
         return (
-            f"parallel --no-notice --bar --eta -a {self.parallel_cmds_tmp_file} "
+            f"parallel --no-notice --bar -a {parallel_cmds_file} "
             + f"-j {self.process_num} "
-            + f"&& rm {self.parallel_cmds_tmp_file}"
         )
 
 
@@ -155,7 +246,7 @@ def get_config() -> Config:
         Config: Config Class
     """
     parser = argparse.ArgumentParser(
-        description="Fast Genome-wide DTL event mapping tool"
+        description="Fast genome-wide DTL event mapping tool"
     )
 
     parser.add_argument(
@@ -164,15 +255,15 @@ def get_config() -> Config:
         required=True,
         type=Path,
         help="Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.genbank) directory",
-        metavar="",
+        metavar="IN",
     )
     parser.add_argument(
         "-t",
-        "--tree_file",
+        "--tree",
         required=True,
         type=Path,
-        help="Input rooted species time(ultrametric) tree file (Newick format)",
-        metavar="",
+        help="Input rooted species newick tree file (timetree is preferable)",
+        metavar="TREE",
     )
     parser.add_argument(
         "-o",
@@ -180,7 +271,7 @@ def get_config() -> Config:
         required=True,
         type=Path,
         help="Output directory",
-        metavar="",
+        metavar="OUT",
     )
     default_processor_num = os.cpu_count() - 1
     parser.add_argument(
@@ -215,6 +306,22 @@ def get_config() -> Config:
         default=default_trn_cost,
         metavar="",
     )
+    default_inflation = 3.0
+    parser.add_argument(
+        "--inflation",
+        type=float,
+        help=f"MCL inflation parameter (Default: {default_inflation})",
+        default=default_inflation,
+        metavar="",
+    )
+    default_nni_move_thr = 90
+    parser.add_argument(
+        "--nni_move_thr",
+        type=int,
+        help=f"Mowgli NNI move bootstrap threshold (Default: {default_nni_move_thr})",
+        default=default_nni_move_thr,
+        metavar="",
+    )
     default_rseed = 0
     parser.add_argument(
         "--rseed",
@@ -228,11 +335,13 @@ def get_config() -> Config:
 
     return Config(
         args.indir,
-        args.tree_file,
+        args.tree,
         args.outdir,
         args.process_num,
         args.dup_cost,
         args.los_cost,
         args.trn_cost,
+        args.inflation,
+        args.nni_move_thr,
         args.rseed,
     )

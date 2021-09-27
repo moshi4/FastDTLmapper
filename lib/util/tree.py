@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from typing import Dict
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
+from lib.mowgli.model import NodeEvent
 
 
 @dataclass
@@ -37,6 +39,39 @@ class UtilTree:
         for cnt, node in enumerate(tree.get_nonterminals(), 1):
             node.name = f"N{cnt:03d}"
             node.confidence = None
+        Phylo.write(tree, nwk_tree_outfile, "newick", format_branch_length="%1.6f")
+
+        # Remove root unexpected branch length value
+        with open(nwk_tree_outfile) as f:
+            replace_tree_info = f.read().replace(":0.000000;", ";").replace("'", "")
+        with open(nwk_tree_outfile, "w") as f:
+            f.write(replace_tree_info)
+
+    @staticmethod
+    def map_node_event(
+        species_tree_infile: str,
+        node_id2node_event: Dict[str, NodeEvent],
+        nwk_tree_outfile: str,
+        map_type: str,
+    ):
+        """Mapping node event to newick tree
+
+        Args:
+            species_tree_infile (str): Input species tree file path
+            node_id2node_event (Dict[str, NodeEvent]): node id & node event dict
+            nwk_tree_outfile (str): Output newick file path
+            map_type (str): mapping type ("gain-loss" or "dtl")
+        """
+        tree: Tree = Phylo.read(species_tree_infile, "newick")
+        for node in tree.find_clades():
+            node_event = node_id2node_event[node.name]
+            if map_type == "gain-loss":
+                node.name = node.name + " | " + node_event.as_gain_loss_text
+            elif map_type == "dtl":
+                node.name = node.name + " | " + node_event.as_dtl_text
+            else:
+                raise ValueError("type must be 'gain-loss' or 'dtl'")
+
         Phylo.write(tree, nwk_tree_outfile, "newick", format_branch_length="%1.6f")
 
         # Remove root unexpected branch length value

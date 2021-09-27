@@ -1,6 +1,7 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -82,3 +83,67 @@ class UtilSeq:
                 cds_seq_record_list.append(cds_seq_record)
 
         SeqIO.write(cds_seq_record_list, fasta_outfile, "fasta-2line")
+
+    @staticmethod
+    def get_uniq_species_name_list(fasta_file: str) -> List[str]:
+        """Get fasta unique species name list
+
+        Args:
+            fasta_file (str): Fasta file path
+
+        Returns:
+            List[str]: Sequence id list
+        """
+        species_name_list = []
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            species_name = "_".join(record.id.split("_")[:-1])
+            species_name_list.append(species_name)
+        return list(set(species_name_list))
+
+    @staticmethod
+    def get_species_name2seq_num(fasta_file: str) -> Dict[str, int]:
+        """Get species_name & seq_num dict
+
+        Args:
+            fasta_file (str): Fasta file path
+
+        Returns:
+            Dict[str, int]: key: species_name, value: seq_num
+        """
+        species_name2seq_num = defaultdict(int)
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            species_name = "_".join(record.id.split("_")[:-1])
+            species_name2seq_num[species_name] += 1
+        return species_name2seq_num
+
+    @staticmethod
+    def is_fasta_file(file: str) -> bool:
+        """Check fasta format file or not
+
+        Args:
+            file (str): Check target file path
+
+        Returns:
+            bool: Check bool result
+        """
+        try:
+            SeqIO.parse(file, "fasta")
+        except ValueError:
+            return False
+        return True
+
+    @staticmethod
+    def is_genbank_file(file: str) -> bool:
+        """Check genbank format file or not
+
+        Args:
+            file (str): Check target file path
+
+        Returns:
+            bool: Check bool result
+        """
+        try:
+            SeqIO.parse(file, "genbank")
+        except ValueError:
+            return False
+        return True
