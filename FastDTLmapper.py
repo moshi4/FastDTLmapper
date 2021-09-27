@@ -5,6 +5,7 @@ import subprocess as sp
 from typing import Dict, List
 
 from lib.config import Config, get_config
+from lib.input_check import InputCheck
 from lib.mowgli import MowgliEventMap, NodeEvent
 from lib.reconcilation import Reconciliation as Rec
 from lib.util import UtilSeq, UtilTree
@@ -12,10 +13,8 @@ from lib.util import UtilSeq, UtilTree
 
 def main(config: Config):
     """Main function"""
-    # TODO: Add check_user_data(config) function
-    # 1. fasta count = leaf species count
-    # 2. fasta file name = leaf species name
-
+    # Check user input
+    InputCheck(config.indir, config.tree_file).run()
     # # 00. Prepare analysis data
     format_user_tree(config)
     format_user_fasta(config)
@@ -260,7 +259,7 @@ def output_aggregate_map_results(
     with open(config.all_node_event_file, "w") as f:
         header = (
             "OG_ID\tNODE_ID\tGENE_NUM\tGAIN_NUM\tBRN_NUM\tDUP_NUM\t"
-            + "TRN_NUM\tLOS_NUM\tTRN_DETAIL\n"
+            + "TRN_NUM\tLOS_NUM\tTRN_DETAIL"
         )
         f.write(header + "\n")
         f.write(output_content)

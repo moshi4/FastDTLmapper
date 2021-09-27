@@ -21,6 +21,7 @@ class Config:
     los_cost: int
     trn_cost: int
     inflation: float
+    nni_move_thr: int
     rseed: int
 
     def __post_init__(self):
@@ -120,11 +121,11 @@ class Config:
             "mafft",
             "trimal",
             "FastTree",
-            "OptRoot",
+            "OptRoot-Dated",
             "Mowgli",
             "parallel",
         ]
-        not_exists_flg = False
+        bin_exists_check_flg = False
         print("Required bin program exists check...")
         for bin in bin_list:
             bin_path = shutil.which(bin)
@@ -132,10 +133,12 @@ class Config:
                 print(f"OK '{bin}' (Path={bin_path})")
             else:
                 print(f"NG '{bin}' (Path=Not exists)")
-                not_exists_flg = True
-        if not_exists_flg:
-            print("Required bin program not exists!!")
+                bin_exists_check_flg = True
+        if bin_exists_check_flg:
+            print("Required bin program not exist!!\n")
             exit(1)
+        else:
+            print("All required bin programs exists.\n")
 
     def output_run_config_log(self):
         """Output run config log file"""
@@ -154,6 +157,7 @@ class Config:
         output_log += f"Loss event cost = {self.los_cost}\n"
         output_log += f"Transfer event cost = {self.trn_cost}\n"
         output_log += f"MCL inflation parameter = {self.inflation}\n"
+        output_log += f"NNI move bootstrap threshold ={self.nni_move_thr}\n"
         output_log += f"Number of random seed = {self.rseed}\n"
         output_log += "\n"
         output_log += f"Elapsed time = {elapsed_time:.2f}[h]"
@@ -175,7 +179,7 @@ class Config:
     def mafft_cmd(self, fasta_infile: str, aln_outfile: str) -> str:
         """Get mafft run command"""
         return (
-            f"mafft --auto --quiet {fasta_infile} > {aln_outfile} "
+            f"mafft --auto --anysymbol --quiet {fasta_infile} > {aln_outfile} "
             + f"2>> {self.mafft_stderr_log_file}"
         )
 
@@ -200,9 +204,9 @@ class Config:
             OptRoot cannot handle float bootstrap value (e.g. NG: 0.987, OK: 98)
         """
         return (
-            f"OptRoot -q -i {gene_tree_infile} -o {rooted_gene_tree_outfile} "
+            f"OptRoot-Dated -q -i {gene_tree_infile} -o {rooted_gene_tree_outfile} "
             + f"-D {self.dup_cost} -L {self.los_cost} -T {self.trn_cost} "
-            + f"-r --seed {self.rseed} --type 2 "
+            + f"-r --seed {self.rseed} "
             + f"2>> {self.optroot_stderr_log_file}"
         )
 
@@ -216,7 +220,8 @@ class Config:
         """
         return (
             f"Mowgli -s {species_tree_infile} -g {gene_tree_infile} -o {outdir} "
-            + f"-d={self.dup_cost} -l={self.los_cost} -t={self.trn_cost} -n 1 -T 80 "
+            + f"-d={self.dup_cost} -l={self.los_cost} -t={self.trn_cost} "
+            + f"-n 1 -T {self.nni_move_thr} "
             + f"2>> {self.mowgli_stderr_log_file}"
         )
 
@@ -257,7 +262,7 @@ def get_config() -> Config:
         "--tree",
         required=True,
         type=Path,
-        help="Input rooted species time(ultrametric) tree file (Newick format)",
+        help="Input rooted species newick tree file (timetree is preferable)",
         metavar="TREE",
     )
     parser.add_argument(
@@ -309,6 +314,14 @@ def get_config() -> Config:
         default=default_inflation,
         metavar="",
     )
+    default_nni_move_thr = 90
+    parser.add_argument(
+        "--nni_move_thr",
+        type=int,
+        help=f"Mowgli NNI move bootstrap threshold (Default: {default_nni_move_thr})",
+        default=default_nni_move_thr,
+        metavar="",
+    )
     default_rseed = 0
     parser.add_argument(
         "--rseed",
@@ -329,5 +342,6 @@ def get_config() -> Config:
         args.los_cost,
         args.trn_cost,
         args.inflation,
+        args.nni_move_thr,
         args.rseed,
     )

@@ -115,3 +115,35 @@ class UtilSeq:
             species_name = "_".join(record.id.split("_")[:-1])
             species_name2seq_num[species_name] += 1
         return species_name2seq_num
+
+    @staticmethod
+    def is_fasta_file(file: str) -> bool:
+        """Check fasta format file or not
+
+        Args:
+            file (str): Check target file path
+
+        Returns:
+            bool: Check bool result
+        """
+        try:
+            SeqIO.parse(file, "fasta")
+        except ValueError:
+            return False
+        return True
+
+    @staticmethod
+    def is_genbank_file(file: str) -> bool:
+        """Check genbank format file or not
+
+        Args:
+            file (str): Check target file path
+
+        Returns:
+            bool: Check bool result
+        """
+        try:
+            SeqIO.parse(file, "genbank")
+        except ValueError:
+            return False
+        return True
