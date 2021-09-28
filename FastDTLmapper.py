@@ -2,11 +2,12 @@
 import datetime
 import shutil
 import subprocess as sp
+from collections import defaultdict
 from typing import Dict, List
 
+from lib.angst import AngstEventMap, AngstTransferGene, NodeEvent
 from lib.config import Config, get_config
 from lib.input_check import InputCheck
-from lib.mowgli import MowgliEventMap, NodeEvent
 from lib.reconcilation import Reconciliation as Rec
 from lib.util import UtilSeq, UtilTree
 
@@ -28,9 +29,10 @@ def main(config: Config):
     iqtree_run(config)
     # 05. DTL reconciliation using AnGST
     angst_run(config)
-    # 07. Aggregate and map DTL reconciliation result
+    # 06. Aggregate and map DTL reconciliation result
     group_id2all_node_event = aggregate_dtl_results(config)
     output_aggregate_map_results(config, group_id2all_node_event)
+    output_aggregate_transfer_results(config)
 
 
 def format_user_tree(config: Config) -> None:
@@ -52,7 +54,7 @@ def format_user_fasta(config: Config) -> None:
     for infile in infiles:
         fasta_outfile = config.user_fasta_dir / infile.with_suffix(".fa").name
         filesymbol = infile.stem.replace("|", "_")
-        id_prefix = f"{filesymbol}_"
+        id_prefix = f"{filesymbol}_GENE"
         if infile.suffix in (".fa", ".faa", ".fasta"):
             UtilSeq.add_serial_id(infile, fasta_outfile, id_prefix)
         elif infile.suffix in (".gb", ".gbk", ".genbank"):
@@ -61,7 +63,7 @@ def format_user_fasta(config: Config) -> None:
 
 def orthofinder_run(config: Config) -> None:
     """Run OrthoFinder"""
-    print("# 01. Grouping ortholog sequences using OrthoFinder")
+    print("\n# 01. Grouping ortholog sequences using OrthoFinder")
     # Get OrthoFinder output directory name
     weekday = datetime.date.today().strftime("%b%d")
     ortho_result_dir = config.ortho_tmpwork_dir / ("Results_" + weekday)
@@ -85,7 +87,7 @@ def orthofinder_run(config: Config) -> None:
 
 def mafft_run(config: Config) -> None:
     """Run mafft"""
-    print("# 02. Align each OG(Ortholog Group) sequences using mafft")
+    print("\n# 02. Align each OG(Ortholog Group) sequences using mafft")
     mafft_cmd_list = []
     for dtl_rec_group_dir in sorted(config.dtl_rec_dir.glob("*")):
         group_id = dtl_rec_group_dir.name
@@ -101,7 +103,7 @@ def mafft_run(config: Config) -> None:
 
 def trimal_run(config: Config) -> None:
     """Run trimal"""
-    print("# 03. Trim each OG alignment using trimal")
+    print("\n# 03. Trim each OG alignment using trimal")
     trimal_cmd_list = []
     for aln_file in sorted(config.dtl_rec_dir.glob("**/*_aln.fa")):
         group_id = aln_file.parent.name
@@ -125,11 +127,11 @@ def trimal_run(config: Config) -> None:
 
 def iqtree_run(config: Config) -> None:
     """Run iqtree"""
-    print("# 04. Reconstruct each OG gene tree using iqtree")
+    print("\n# 04. Reconstruct each OG gene tree using iqtree")
     iqtree_cmd_list = []
     for aln_trim_file in sorted(config.dtl_rec_dir.glob("**/*_aln_trim.fa")):
         group_id = aln_trim_file.parent.name
-        iqtree_outdir = aln_trim_file.parent / "gene_tree"
+        iqtree_outdir = aln_trim_file.parent / "iqtree"
         iqtree_outdir.mkdir(exist_ok=True)
         iqtree_prefix = iqtree_outdir / group_id
         if UtilSeq.count_fasta_seq(aln_trim_file) >= 4:
@@ -146,9 +148,10 @@ def iqtree_run(config: Config) -> None:
 
 def angst_run(config: Config) -> None:
     """Run AnGST"""
+    print("\n# 05. DTL reconciliation using AnGST")
     angst_cmd_list = []
     for boot_tree_file in sorted(config.dtl_rec_dir.glob("**/*.ufboot")):
-        outdir = boot_tree_file.parent.parent / "AnGST"
+        outdir = boot_tree_file.parent.parent / "angst"
         outdir.mkdir(exist_ok=True)
         angst_cmd = config.angst_cmd(config.um_tree_file, boot_tree_file, outdir)
         angst_cmd_list.append(angst_cmd)
@@ -159,7 +162,7 @@ def angst_run(config: Config) -> None:
 
 def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
     """Aggregate DTL reconciliation result"""
-    print("# 07. Aggregate and map DTL reconciliation result")
+    print("\n# 06. Aggregate and map DTL reconciliation result")
     group_id2node_event_list: Dict[str, List[NodeEvent]] = {}
     for dtl_rec_group_dir in sorted(config.dtl_rec_dir.glob("*")):
         group_id = dtl_rec_group_dir.name
@@ -167,10 +170,8 @@ def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
         seq_count = UtilSeq.count_fasta_seq(group_fasta_file)
         if seq_count >= 3:
             # Get DTL reconciliation event map
-            dtl_rec_group_result_dir = dtl_rec_group_dir / "dtl_reconciliation"
-            mowgli_xml_file = dtl_rec_group_result_dir / "RecGeneTree.xml"
-            mowgli_tree_file = dtl_rec_group_result_dir / "outputSpeciesTree.mpr"
-            event_map = MowgliEventMap(mowgli_tree_file, mowgli_xml_file)
+            angst_result_dir = dtl_rec_group_dir / "angst"
+            event_map = AngstEventMap(config.um_nodeid_tree_file, angst_result_dir)
 
             # Map each group DTL event to newick tree
             gain_loss_map_file = dtl_rec_group_dir / (group_id + "_gain_loss_map.nwk")
@@ -179,7 +180,7 @@ def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
             event_map.write_tree(dtl_map_file, "dtl")
 
             # Get each group all node DTL event
-            node_event_list = event_map.get_all_node_event()
+            node_event_list = event_map.nodeid2node_event.values()
 
         elif seq_count == 2:
             node_event_list = Rec.two_species(
@@ -231,27 +232,48 @@ def output_aggregate_map_results(
         f.write(output_content)
 
     # Output results in newick mapped format
-    node_id2total_node_event: Dict[str, NodeEvent] = {}
+    nodeid2total_node_event: Dict[str, NodeEvent] = {}
     for node_event_list in group_id2node_event_list.values():
         # Count up the number of events for each node id
         for node_event in node_event_list:
             node_id = node_event.node_id
-            if node_id not in node_id2total_node_event.keys():
-                node_id2total_node_event[node_id] = NodeEvent(node_id, gene_num=0)
-            node_id2total_node_event[node_id] += node_event
+            if node_id not in nodeid2total_node_event.keys():
+                nodeid2total_node_event[node_id] = NodeEvent(node_id, gene_num=0)
+            nodeid2total_node_event[node_id] += node_event
 
     UtilTree.map_node_event(
         config.um_nodeid_tree_file,
-        node_id2total_node_event,
+        nodeid2total_node_event,
         config.all_gain_loss_map_file,
         "gain-loss",
     )
     UtilTree.map_node_event(
         config.um_nodeid_tree_file,
-        node_id2total_node_event,
+        nodeid2total_node_event,
         config.all_dtl_map_file,
         "dtl",
     )
+
+
+def output_aggregate_transfer_results(config: Config) -> None:
+    """Output aggregated transfer results"""
+    trn_fromto2all_gene_id_list = defaultdict(list)
+    for angst_result_dir in sorted(config.dtl_rec_dir.glob("**/angst/")):
+        trn_gene = AngstTransferGene(config.um_nodeid_tree_file, angst_result_dir)
+        for trn_fromto, gene_id_list in trn_gene.trn_fromto2gene_id_list.items():
+            trn_fromto2all_gene_id_list[trn_fromto].extend(gene_id_list)
+
+    output_info = ""
+    for trn_fromto, all_gene_id_list in sorted(
+        trn_fromto2all_gene_id_list.items(), key=lambda x: len(x[1]), reverse=True
+    ):
+        all_gene_num = len(all_gene_id_list)
+        output_info += f"{trn_fromto}\t{all_gene_num}\t{'|'.join(all_gene_id_list)}\n"
+
+    with open(config.all_transfer_gene_file, "w") as f:
+        header = "Transfer\tTransferDerivedGeneNum\tTransferDerivedGeneList\n"
+        f.write(header)
+        f.write(output_info)
 
 
 if __name__ == "__main__":

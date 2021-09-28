@@ -49,6 +49,7 @@ class Config:
         self.all_dtl_map_file = self.aggregate_map_dir / "all_dtl_map.nwk"
         self.all_gain_loss_map_file = self.aggregate_map_dir / "all_gain_loss_map.nwk"
         self.all_node_event_file = self.aggregate_map_dir / "all_group_node_event.tsv"
+        self.all_transfer_gene_file = self.aggregate_map_dir / "all_transfer_genes.tsv"
 
         # Log commands list and command stderr
         self.log_dir = self.outdir / "log"
@@ -90,8 +91,6 @@ class Config:
             self.mafft_stderr_log_file,
             self.trimal_stderr_log_file,
             self.iqtree_stderr_log_file,
-            self.optroot_stderr_log_file,
-            self.mowgli_stderr_log_file,
         ):
             stderr_log_file.unlink(missing_ok=True)
 
@@ -195,7 +194,7 @@ class Config:
         return (
             f"iqtree -s {aln_infile} --prefix {prefix} -m TEST -mset JTT,WAG,LG "
             + f"--seed {self.rseed} --ufboot 1000 --boot-trees --wbtl --redo --quiet "
-            + f"2>>  {self.iqtree_stderr_log_file} "
+            + f"2>> {self.iqtree_stderr_log_file} "
         )
 
     def angst_cmd(self, species_tree_file: str, boot_tree_file: str, outdir: str):

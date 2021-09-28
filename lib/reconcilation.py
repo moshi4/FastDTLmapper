@@ -4,7 +4,7 @@ from typing import List
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
 
-from lib.mowgli import NodeEvent, Transfer
+from lib.angst import NodeEvent, Transfer
 from lib.util import UtilSeq
 
 

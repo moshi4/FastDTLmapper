@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import re
 import shutil
 import subprocess as sp
 from pathlib import Path
@@ -67,7 +68,10 @@ def main(
     # Fix AnGST unreadable newick format chimeric gene tree
     angst_nwk_file = outdir / "AnGST.newick"
     with open(angst_nwk_file) as f:
-        fix_nwk_info = f.readline().lstrip("(").replace(");", ";")
+        nwk_text = f.readline().replace(");", "")[1:]
+        # match = re.search(r"^\((.+\))[^\)]+\)", nwk_text)
+        match = re.search(r"^\(.+\)[^\)]+\)", nwk_text)
+        fix_nwk_info = match.group() + ";"
     with open(angst_nwk_file, "w") as f:
         f.write(fix_nwk_info)
 
