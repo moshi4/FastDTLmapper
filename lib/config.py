@@ -188,12 +188,12 @@ class Config:
             + f"2>> {self.trimal_stderr_log_file}"
         )
 
-    def iqtree_cmd(self, aln_infile: str, prefix: str) -> str:
+    def iqtree_cmd(self, aln_infile: str, prefix: str, boot: bool = True) -> str:
         """Get iqtree run command"""
-        # TODO: Set model parameter from argument
+        boot_opt = "--ufboot 1000 --boot-trees --wbtl" if boot else ""
         return (
             f"iqtree -s {aln_infile} --prefix {prefix} -m TEST -mset JTT,WAG,LG "
-            + f"--seed {self.rseed} --ufboot 1000 --boot-trees --wbtl --redo --quiet "
+            + f"--seed {self.rseed} {boot_opt} --redo --quiet "
             + f"2>> {self.iqtree_stderr_log_file} "
         )
 

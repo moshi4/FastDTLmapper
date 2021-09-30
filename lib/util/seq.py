@@ -25,6 +25,18 @@ class UtilSeq:
         return len(list(SeqIO.parse(fasta_file, "fasta")))
 
     @staticmethod
+    def count_fasta_uniqseq(fasta_file: str) -> int:
+        """Count number of fasta unique sequence
+
+        Args:
+            fasta_file (str): fasta file path
+
+        Returns:
+            int: Number of fasta unique sequece
+        """
+        return len(set([r.seq for r in SeqIO.parse(fasta_file, "fasta")]))
+
+    @staticmethod
     def add_serial_id(
         fasta_infile: Union[str, Path],
         fasta_outfile: Union[str, Path],

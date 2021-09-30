@@ -134,16 +134,25 @@ def iqtree_run(config: Config) -> None:
         iqtree_outdir = aln_trim_file.parent / "iqtree"
         iqtree_outdir.mkdir(exist_ok=True)
         iqtree_prefix = iqtree_outdir / group_id
-        if UtilSeq.count_fasta_seq(aln_trim_file) >= 4:
+        seq_num = UtilSeq.count_fasta_seq(aln_trim_file)
+        uniqseq_num = UtilSeq.count_fasta_uniqseq(aln_trim_file)
+        if seq_num >= 4 and uniqseq_num >= 4:
             iqtree_cmd = config.iqtree_cmd(aln_trim_file, iqtree_prefix)
             iqtree_cmd_list.append(iqtree_cmd)
+        elif seq_num >= 4 and uniqseq_num < 4:
+            # iqtree bootstrap option cannot handle less than 4 identical sequences
+            iqtree_cmd = config.iqtree_cmd(aln_trim_file, iqtree_prefix, boot=False)
+            sp.run(iqtree_cmd, shell=True)
+            shutil.copy(
+                str(iqtree_prefix) + ".treefile", str(iqtree_prefix) + ".ufboot"
+            )
         else:
             # iqtree cannot handle 3 genes tree
-            gene_tree_file = iqtree_outdir / (group_id + ".ufboot")
+            gene_tree_file = str(iqtree_prefix) + ".ufboot"
             UtilTree.make_3genes_tree(aln_trim_file, gene_tree_file)
 
-    fasttree_parallel_cmd = config.parallel_cmd(iqtree_cmd_list, "iqtree")
-    sp.run(fasttree_parallel_cmd, shell=True)
+    iqtree_parallel_cmd = config.parallel_cmd(iqtree_cmd_list, "iqtree")
+    sp.run(iqtree_parallel_cmd, shell=True)
 
 
 def angst_run(config: Config) -> None:
