@@ -38,7 +38,7 @@ def main(
     work_log_file = work_dir / "log.txt"
     work_dir.mkdir(exist_ok=True)
     shutil.copy(species_tree_file, work_species_tree_file)
-    shutil.copy(gene_tree_file, work_gene_tree_file)
+    sp.run(f"cat {gene_tree_file} | head -n 100 > {work_gene_tree_file}", shell=True)
 
     # Fix species tree file for AnGST run
     # AnGST requires branch length in all branch
