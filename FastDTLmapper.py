@@ -280,7 +280,7 @@ def output_aggregate_transfer_results(config: Config) -> None:
         output_info += f"{trn_fromto}\t{all_gene_num}\t{'|'.join(all_gene_id_list)}\n"
 
     with open(config.all_transfer_gene_file, "w") as f:
-        header = "Transfer\tTransferDerivedGeneNum\tTransferDerivedGeneList\n"
+        header = "TransferPath\tTransferDerivedGeneNum\tTransferDerivedGeneList\n"
         f.write(header)
         f.write(output_info)
 
