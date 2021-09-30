@@ -37,20 +37,19 @@ class AngstEventMap:
                 donor_node_info, recipient_node_info = event_node_info.split(" --> ")
                 donor_node = tree.common_ancestor(donor_node_info.split("-"))
                 recipient_node = tree.common_ancestor(recipient_node_info.split("-"))
-            else:
-                lca_node = tree.common_ancestor(event_node_info.split("-"))
+                nodeid2node_event[recipient_node.name].trn_num += 1
+                nodeid2node_event[recipient_node.name].trn_detail_list.append(
+                    Transfer(donor_node.name, recipient_node.name)
+                )
+                continue
 
+            lca_node = tree.common_ancestor(event_node_info.split("-"))
             if event_type == "brn":
                 nodeid2node_event[lca_node.name].brn_num += 1
             elif event_type == "dup":
                 nodeid2node_event[lca_node.name].dup_num += 1
             elif event_type == "los":
                 nodeid2node_event[lca_node.name].los_num += 1
-            elif event_type == "hgt":
-                nodeid2node_event[recipient_node.name].trn_num += 1
-                nodeid2node_event[recipient_node.name].trn_detail_list.append(
-                    Transfer(donor_node.name, recipient_node.name)
-                )
 
         # Countup ancestor gene num from event map info
         for node_event in nodeid2node_event.values():
