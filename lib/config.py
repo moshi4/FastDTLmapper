@@ -48,7 +48,7 @@ class Config:
 
         self.all_dtl_map_file = self.aggregate_map_dir / "all_dtl_map.nwk"
         self.all_gain_loss_map_file = self.aggregate_map_dir / "all_gain_loss_map.nwk"
-        self.all_node_event_file = self.aggregate_map_dir / "all_group_node_event.tsv"
+        self.all_node_event_file = self.aggregate_map_dir / "all_og_node_event.tsv"
         self.all_transfer_gene_file = self.aggregate_map_dir / "all_transfer_genes.tsv"
 
         # Log commands list and command stderr
