@@ -21,7 +21,7 @@ class InputCheck:
 
         self.valid_fasta_suffix_list = (".fa", ".faa", ".fasta")
         self.valid_genbank_suffix_list = (".gb", ".gbk", ".genbank")
-        self.invalid_char_list = ["'", '"', "-", "_"]
+        self.invalid_char_list = ["'", '"', "-", "_", "|"]
 
     def run(self):
         """Run all check process"""
