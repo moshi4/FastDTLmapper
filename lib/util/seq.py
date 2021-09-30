@@ -110,7 +110,7 @@ class UtilSeq:
         for record in SeqIO.parse(fasta_file, "fasta"):
             species_name = "_".join(record.id.split("_")[:-1])
             species_name_list.append(species_name)
-        return list(set(species_name_list))
+        return sorted(list(set(species_name_list)))
 
     @staticmethod
     def get_species_name2seq_num(fasta_file: str) -> Dict[str, int]:
