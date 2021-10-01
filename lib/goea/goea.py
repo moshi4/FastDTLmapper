@@ -25,6 +25,7 @@ class GOEA:
     plot_max_num: int = 10
     plot_format: str = "png"
     use_adjusted_pvalue: bool = False
+    plot_min_depth: int = 2
 
     def run(self, output_prefix: Path) -> List[Path]:
         """Run GOEA using goatools
@@ -103,11 +104,15 @@ class GOEA:
         df = pd.read_table(goea_result_file)
         if extract_type == "enrichment":
             extract_df = df[
-                (df["enrichment"] == "e") & (df[pvalue_column] < self.pvalue_thr)
+                (df["enrichment"] == "e")
+                & (df[pvalue_column] < self.pvalue_thr)
+                & (df["depth"] >= self.plot_min_depth)
             ]
         elif extract_type == "purified":
             extract_df = df[
-                (df["enrichment"] == "p") & (df[pvalue_column] < self.pvalue_thr)
+                (df["enrichment"] == "p")
+                & (df[pvalue_column] < self.pvalue_thr)
+                & (df["depth"] >= self.plot_min_depth)
             ]
         extract_df = extract_df.head(self.plot_max_num)
 
