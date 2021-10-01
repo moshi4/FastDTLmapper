@@ -14,6 +14,7 @@ def main(
     los_cost: int,
     trn_cost: int,
     timetree: bool,
+    max_boot_num: int = 100,
 ):
     """AnGST wrapper run function
 
@@ -25,6 +26,7 @@ def main(
         los_cost (int): Loss event cost
         trn_cost (int): Transfer event cost
         timetree (bool): Timetree or not flag
+        max_boot_num (int): Max bootstrap number AnGST use
     """
     # Remove previous directory
     shutil.rmtree(outdir)
@@ -38,7 +40,9 @@ def main(
     work_log_file = work_dir / "log.txt"
     work_dir.mkdir(exist_ok=True)
     shutil.copy(species_tree_file, work_species_tree_file)
-    sp.run(f"cat {gene_tree_file} | head -n 100 > {work_gene_tree_file}", shell=True)
+    sp.run(
+        f"head -n {max_boot_num} {gene_tree_file} > {work_gene_tree_file}", shell=True
+    )
 
     # Fix species tree file for AnGST run
     # AnGST requires branch length in all branch
@@ -69,7 +73,6 @@ def main(
     angst_nwk_file = outdir / "AnGST.newick"
     with open(angst_nwk_file) as f:
         nwk_text = f.readline().replace(");", "")[1:]
-        # match = re.search(r"^\((.+\))[^\)]+\)", nwk_text)
         match = re.search(r"^\(.+\)[^\)]+\)", nwk_text)
         fix_nwk_info = match.group() + ";"
     with open(angst_nwk_file, "w") as f:
@@ -140,6 +143,14 @@ def get_args() -> argparse.Namespace:
         help="Use species tree as timetree",
         action="store_true",
     )
+    default_max_boot_num = 100
+    parser.add_argument(
+        "--max_boot_num",
+        type=int,
+        help=f"Max bootstrap number AnGST use (Default: {default_max_boot_num})",
+        default=default_max_boot_num,
+        metavar="",
+    )
 
     return parser.parse_args()
 
@@ -154,4 +165,5 @@ if __name__ == "__main__":
         args.los_cost,
         args.trn_cost,
         args.timetree,
+        args.max_boot_num,
     )
