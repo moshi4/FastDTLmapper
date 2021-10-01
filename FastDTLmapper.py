@@ -266,23 +266,44 @@ def output_aggregate_map_results(
 
 def output_aggregate_transfer_results(config: Config) -> None:
     """Output aggregated transfer results"""
+    trn_gene_list: List[AngstTransferGene] = []
     trn_fromto2all_gene_id_list = defaultdict(list)
     for angst_result_dir in sorted(config.dtl_rec_dir.glob("**/angst/")):
-        trn_gene = AngstTransferGene(config.um_nodeid_tree_file, angst_result_dir)
+        og_id = angst_result_dir.parent.name
+        trn_gene = AngstTransferGene(
+            config.um_nodeid_tree_file, angst_result_dir, og_id
+        )
+        trn_gene_list.append(trn_gene)
         for trn_fromto, gene_id_list in trn_gene.trn_fromto2gene_id_list.items():
             trn_fromto2all_gene_id_list[trn_fromto].extend(gene_id_list)
 
-    output_info = ""
+    # Write all transfer derived gene list per line
+    all_trn_genes_info = ""
+    for trn_gene in trn_gene_list:
+        for trn_fromto, gene_id_list in trn_gene.trn_fromto2gene_id_list.items():
+            for gene_id in gene_id_list:
+                all_trn_genes_info += f"{trn_gene.group_id}\t{gene_id}\t{trn_fromto}\n"
+    with open(config.all_trn_genes_file, "w") as f:
+        header = "OG_ID\tTRANSFER_DERIVED_GENE_ID\tTRANSFER_PATH\n"
+        f.write(header)
+        f.write(all_trn_genes_info)
+
+    # Write transfer derived gene count summary file
+    # Number of genes in descending order
+    all_trn_count_info = ""
     for trn_fromto, all_gene_id_list in sorted(
         trn_fromto2all_gene_id_list.items(), key=lambda x: len(x[1]), reverse=True
     ):
         all_gene_num = len(all_gene_id_list)
-        output_info += f"{trn_fromto}\t{all_gene_num}\t{'|'.join(all_gene_id_list)}\n"
-
-    with open(config.all_transfer_gene_file, "w") as f:
-        header = "TransferPath\tTransferDerivedGeneNum\tTransferDerivedGeneList\n"
+        all_trn_count_info += (
+            f"{trn_fromto}\t{all_gene_num}\t{'|'.join(all_gene_id_list)}\n"
+        )
+    with open(config.all_trn_count_file, "w") as f:
+        header = (
+            "TRANSFER_PATH\tTRANSFER_DERIVED_GENE_NUM\tTRANSFER_DERIVED_GENE_ID_LIST\n"
+        )
         f.write(header)
-        f.write(output_info)
+        f.write(all_trn_count_info)
 
 
 if __name__ == "__main__":
