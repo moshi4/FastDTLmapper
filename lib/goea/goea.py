@@ -24,6 +24,7 @@ class GOEA:
     pvalue_thr: float = 0.05
     plot_max_num: int = 10
     plot_format: str = "png"
+    plot_color: str = ""
     use_adjusted_pvalue: bool = False
     plot_min_depth: int = 2
 
@@ -70,14 +71,25 @@ class GOEA:
             goterm2pvalue = self._extract_goterm2pvalue(goea_result_file, goea_type)
             if len(goterm2pvalue) == 0:
                 return
-            # Get hexcolor from pvalue for color plot
-            pvalue_abs_log10_list = [abs(math.log10(v)) for v in goterm2pvalue.values()]
-            pvalue_hexcolor_list = self._convert_hexcolor_gradient(
-                pvalue_abs_log10_list
-            )
+
+            # Plot color setting
             goterm2hexcolor = {}
-            for goterm, hexcolor in zip(goterm2pvalue.keys(), pvalue_hexcolor_list):
-                goterm2hexcolor[goterm] = hexcolor
+            if self.plot_color:
+                # Set specified plot color
+                for goterm in goterm2pvalue.keys():
+                    goterm2hexcolor[goterm] = self.plot_color
+            else:
+                # Get hexcolor from pvalue for color plot
+                pvalue_abs_log10_list = [
+                    abs(math.log10(v)) for v in goterm2pvalue.values()
+                ]
+                pvalue_hexcolor_list = self._convert_hexcolor_gradient(
+                    pvalue_abs_log10_list
+                )
+                # Set yellow to red gradient plot color
+                for goterm, hexcolor in zip(goterm2pvalue.keys(), pvalue_hexcolor_list):
+                    goterm2hexcolor[goterm] = hexcolor
+
             # Plot GOterm with gradient color
             plot_outfile = Path(f"{output_prefix}_{goea_type}.{self.plot_format}")
             self._color_plot(plot_outfile, goterm2hexcolor, goterm2pvalue)

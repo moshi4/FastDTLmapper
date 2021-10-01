@@ -2,6 +2,7 @@
 import argparse
 import csv
 import os
+import re
 import shutil
 import subprocess as sp
 from collections import defaultdict
@@ -15,6 +16,7 @@ def main(
     plot_pvalue_thr: float,
     plot_max_num: int,
     plot_format: str,
+    plot_color: str,
     use_adjusted_pvalue: bool,
 ):
     """Run GOEA(GO Enrichment Analysis) for FastDTLmapper result
@@ -24,6 +26,7 @@ def main(
         plot_pvalue_thr (float): Plot GOterm pvalue threshold
         plot_max_num (int): Plot GOterm max number
         plot_format (str): Plot file format
+        plot_color (str): Plot specified hexcolor
         use_adjusted_pvalue (bool): Use adjusted pvalue or not
     """
     # Output directory
@@ -69,6 +72,7 @@ def main(
         plot_pvalue_thr,
         plot_max_num,
         plot_format,
+        plot_color,
         use_adjusted_pvalue,
     )
 
@@ -88,7 +92,7 @@ def get_args() -> argparse.Namespace:
         required=True,
         type=Path,
         help="FastDTLmapper result directory",
-        metavar="",
+        metavar="IN",
     )
     default_plot_pvalue_thr = 0.05
     parser.add_argument(
@@ -114,7 +118,15 @@ def get_args() -> argparse.Namespace:
         default=default_plot_format,
         choices=available_format,
         help=f"Plot file format [{'|'.join(available_format)}] "
-        + f"(Default: {default_plot_format})",
+        + f"(Default: '{default_plot_format}')",
+        metavar="",
+    )
+    parser.add_argument(
+        "--plot_color",
+        type=str,
+        default="",
+        help="Plot specified hexcolor [e.g. '1affdb'] "
+        + "(Default: yellow to red gradient color)",
         metavar="",
     )
     parser.add_argument(
@@ -123,7 +135,20 @@ def get_args() -> argparse.Namespace:
         action="store_true",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Plot hexcolor check
+    def is_valid_hexcolor(hexcolor: str) -> bool:
+        return re.search(r"^(?:[0-9a-fA-F]{3}){1,2}$", hexcolor)
+
+    if args.plot_color and not is_valid_hexcolor(args.plot_color):
+        parser.error(
+            f"argument --plot_color: invalid hexcolor code '{args.plot_color}'."
+        )
+    else:
+        args.plot_color = "#" + args.plot_color if args.plot_color else ""
+
+    return args
 
 
 def run_interproscan(
@@ -209,6 +234,7 @@ def run_goatools_goea(
     pvalue_thr: float = 0.05,
     plot_max_num: int = 10,
     plot_format: str = "png",
+    plot_color: str = "",
     use_adjusted_pvalue: bool = False,
 ) -> None:
     """Run goatools GOEA
@@ -220,6 +246,7 @@ def run_goatools_goea(
         pvalue_thr (float): Plot GOterm pvalue threshold
         plot_max_num (int): Max GOterm plot number
         plot_format (str): Plot file format
+        plot_color (str): Plot specified color
         use_adjusted_pvalue (bool): Use adjusted pvalue or not
     """
     for goea_node_dir in sorted(go_enrichment_dir.glob("*/*/")):
@@ -237,6 +264,7 @@ def run_goatools_goea(
             pvalue_thr,
             plot_max_num,
             plot_format,
+            plot_color,
             use_adjusted_pvalue,
         )
         output_prefix = goea_node_dir / f"{goea_node_dir.name}_goea"
@@ -253,5 +281,6 @@ if __name__ == "__main__":
         args.plot_pvalue_thr,
         args.plot_max_num,
         args.plot_format,
+        args.plot_color,
         args.adjusted_pvalue,
     )
