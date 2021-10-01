@@ -21,6 +21,10 @@ class GOEA:
     all_list_file: Path
     association_file: Path
     obo_file: Path = Path("go-basic.obo")
+    pvalue_thr: float = 0.05
+    plot_max_num: int = 10
+    plot_format: str = "png"
+    use_adjusted_pvalue: bool = False
 
     def run(self, output_prefix: Path) -> List[Path]:
         """Run GOEA using goatools
@@ -53,30 +57,16 @@ class GOEA:
         self,
         goea_result_file: Path,
         output_prefix: Path,
-        pvalue_thr: float = 0.05,
-        plot_max_num: int = 10,
-        plot_format: str = "png",
-        use_adjusted_pvalue: bool = False,
     ) -> None:
         """Plot GOEA significant GOterms
 
         Args:
             goea_result_file (Path): GOEA result file path
             output_prefix (Path): Output files prefix path
-            pvalue_thr (float, optional): GOEA plot pvalue threshold. Defaults to 0.05.
-            plot_max_num (int, optional): GOEA max plot number. Defaults to 10.
-            plot_format (int, optional): Plot file format. Defaults to "png".
-            use_adjusted_pvalue (bool, optional): Use adjusted pvalue or not
         """
         for goea_type in ("enrichment", "purified"):
             # Extract goterm & pvalue
-            goterm2pvalue = self._extract_goterm2pvalue(
-                goea_result_file,
-                goea_type,
-                pvalue_thr,
-                plot_max_num,
-                use_adjusted_pvalue,
-            )
+            goterm2pvalue = self._extract_goterm2pvalue(goea_result_file, goea_type)
             if len(goterm2pvalue) == 0:
                 return
             # Get hexcolor from pvalue for color plot
@@ -88,25 +78,19 @@ class GOEA:
             for goterm, hexcolor in zip(goterm2pvalue.keys(), pvalue_hexcolor_list):
                 goterm2hexcolor[goterm] = hexcolor
             # Plot GOterm with gradient color
-            plot_outfile = Path(f"{output_prefix}_{goea_type}.{plot_format}")
+            plot_outfile = Path(f"{output_prefix}_{goea_type}.{self.plot_format}")
             self._color_plot(plot_outfile, goterm2hexcolor, goterm2pvalue)
 
     def _extract_goterm2pvalue(
         self,
         goea_result_file: Path,
         extract_type: str,
-        pvalue_thr: float = 0.05,
-        max_num: int = 10,
-        use_adjusted_pvalue: bool = False,
     ) -> Dict[str, float]:
         """Extract GOterm & Pvalue from GOEA result file
 
         Args:
             goea_result_file (Path): GOEA result file
             extract_type (str): "enrichment" or "purified"
-            pvalue_thr (float, optional): Pvalue threshold. Defaults to 0.05.
-            max_num (int, optional): Max extraction number. Defaults to 10.
-            use_adjusted_pvalue (bool): Use adjusted pvalue or not
 
         Returns:
             Dict[str, float]: GOterm & Pvalue dict
@@ -114,18 +98,18 @@ class GOEA:
         if extract_type not in ("enrichment", "purified"):
             raise ValueError("extract_type must be 'enrichment' or 'purified'!!")
 
-        pvalue_column = "p_fdr_bh" if use_adjusted_pvalue else "p_uncorrected"
+        pvalue_column = "p_fdr_bh" if self.use_adjusted_pvalue else "p_uncorrected"
 
         df = pd.read_table(goea_result_file)
         if extract_type == "enrichment":
             extract_df = df[
-                (df["enrichment"] == "e") & (df[pvalue_column] < pvalue_thr)
+                (df["enrichment"] == "e") & (df[pvalue_column] < self.pvalue_thr)
             ]
         elif extract_type == "purified":
             extract_df = df[
-                (df["enrichment"] == "p") & (df[pvalue_column] < pvalue_thr)
+                (df["enrichment"] == "p") & (df[pvalue_column] < self.pvalue_thr)
             ]
-        extract_df = extract_df.head(max_num)
+        extract_df = extract_df.head(self.plot_max_num)
 
         goterm2pvalue = {}
         for goterm, pvalue in zip(extract_df["# GO"], extract_df[pvalue_column]):
@@ -143,7 +127,6 @@ class GOEA:
 
         Args:
             value_list (List[float]): List of float values
-            step_num (int, optional): Number of gradient steps. Defaults to 10.
             default_min (float, optional): Default minimum value. Defaults to 0.05.
             default_max (float, optional): Default maximum value. Defaults to 10.
 
