@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
@@ -13,6 +13,7 @@ class AngstTransferGene:
 
     species_tree_file: str
     angst_result_dir: str
+    group_id: Optional[str] = None
 
     def __post_init__(self):
         self.species_tree_file = Path(self.species_tree_file)
