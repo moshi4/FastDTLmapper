@@ -230,20 +230,20 @@ def run_goatools_goea(
             continue
         # Run GOEA
         goea = GOEA(
-            target_gene_list_file, all_gene_list_file, association_file, obo_file
+            target_gene_list_file,
+            all_gene_list_file,
+            association_file,
+            obo_file,
+            pvalue_thr,
+            plot_max_num,
+            plot_format,
+            use_adjusted_pvalue,
         )
         output_prefix = goea_node_dir / f"{goea_node_dir.name}_goea"
         goea_result_file_list = goea.run(output_prefix)
         # Plot GOEA significant GOterms
         for goea_result_file in goea_result_file_list:
-            goea.plot(
-                goea_result_file,
-                goea_result_file.with_suffix(""),
-                pvalue_thr,
-                plot_max_num,
-                plot_format,
-                use_adjusted_pvalue,
-            )
+            goea.plot(goea_result_file, goea_result_file.with_suffix(""))
 
 
 if __name__ == "__main__":
