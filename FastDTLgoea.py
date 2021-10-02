@@ -39,8 +39,8 @@ def main(
     go_enrichment_dir = outdir / "go_enrichment"
     result_summary_dir = outdir / "result_summary"
     result_summary_plot_dir = result_summary_dir / "significant_go_plot"
-    shutil.rmtree(go_enrichment_dir)
-    shutil.rmtree(result_summary_dir)
+    shutil.rmtree(go_enrichment_dir, ignore_errors=True)
+    shutil.rmtree(result_summary_dir, ignore_errors=True)
     os.makedirs(go_annotation_dir, exist_ok=True)
     os.makedirs(go_annotation_workdir, exist_ok=True)
     os.makedirs(go_enrichment_dir, exist_ok=True)
@@ -49,7 +49,9 @@ def main(
     # GO annotation using interproscan
     fasta_dir = indir / "00_user_data" / "fasta"
     if not fasta_dir.exists():
-        raise ValueError(f"Input directory '{fasta_dir}' not found!!")
+        err_msg = f"Input fasta directory '{fasta_dir}' not found!!\n"
+        err_msg += "Please specify FastDTLmapper result directory as input directory."
+        raise ValueError(err_msg)
 
     for fasta_file in fasta_dir.glob("*.fa"):
         species_name = fasta_file.stem
