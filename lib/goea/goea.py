@@ -70,7 +70,7 @@ class GOEA:
             # Extract goterm & pvalue
             goterm2pvalue = self._extract_goterm2pvalue(goea_result_file, goea_type)
             if len(goterm2pvalue) == 0:
-                return
+                continue
 
             # Plot color setting
             goterm2hexcolor = {}
