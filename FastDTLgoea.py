@@ -30,13 +30,18 @@ def main(
         use_adjusted_pvalue (bool): Use adjusted pvalue or not
     """
     # Output directory
-    outdir = indir / "04_go_enrichment"
+    outdir = indir / "04_functional_analysis"
     go_annotation_dir = outdir / "go_annotation"
     go_annotation_workdir = go_annotation_dir / "work"
     go_enrichment_dir = outdir / "go_enrichment"
+    result_summary_dir = outdir / "result_summary"
+    result_summary_plot_dir = result_summary_dir / "significant_go_plot"
+    shutil.rmtree(go_enrichment_dir)
+    shutil.rmtree(result_summary_dir)
     os.makedirs(go_annotation_dir, exist_ok=True)
     os.makedirs(go_annotation_workdir, exist_ok=True)
     os.makedirs(go_enrichment_dir, exist_ok=True)
+    os.makedirs(result_summary_plot_dir, exist_ok=True)
 
     # GO annotation using interproscan
     fasta_dir = indir / "00_user_data" / "fasta"
@@ -63,7 +68,7 @@ def main(
     make_node_goea_resource(all_og_node_event_file, go_enrichment_dir, "loss")
 
     # Run GOEA for each node gain/loss genes
-    obo_file = go_enrichment_dir / "go-basic.obo"
+    obo_file = outdir / "go-basic.obo"
     GOEA.download_obo(obo_file)
     run_goatools_goea(
         go_enrichment_dir,
