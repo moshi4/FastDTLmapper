@@ -66,11 +66,11 @@ class GOEA:
             goea_result_file (Path): GOEA result file path
             output_prefix (Path): Output files prefix path
         """
-        for goea_type in ("enrichment", "purified"):
+        for goea_type in ("over", "under"):
             # Extract goterm & pvalue
             goterm2pvalue = self._extract_goterm2pvalue(goea_result_file, goea_type)
             if len(goterm2pvalue) == 0:
-                return
+                continue
 
             # Plot color setting
             goterm2hexcolor = {}
@@ -103,24 +103,24 @@ class GOEA:
 
         Args:
             goea_result_file (Path): GOEA result file
-            extract_type (str): "enrichment" or "purified"
+            extract_type (str): "over" or "under"
 
         Returns:
             Dict[str, float]: GOterm & Pvalue dict
         """
-        if extract_type not in ("enrichment", "purified"):
-            raise ValueError("extract_type must be 'enrichment' or 'purified'!!")
+        if extract_type not in ("over", "under"):
+            raise ValueError("extract_type must be 'over' or 'under'!!")
 
         pvalue_column = "p_fdr_bh" if self.use_adjusted_pvalue else "p_uncorrected"
 
         df = pd.read_table(goea_result_file)
-        if extract_type == "enrichment":
+        if extract_type == "over":
             extract_df = df[
                 (df["enrichment"] == "e")
                 & (df[pvalue_column] < self.pvalue_thr)
                 & (df["depth"] >= self.plot_min_depth)
             ]
-        elif extract_type == "purified":
+        elif extract_type == "under":
             extract_df = df[
                 (df["enrichment"] == "p")
                 & (df[pvalue_column] < self.pvalue_thr)
@@ -214,9 +214,19 @@ class GOEA:
         godag_plg_vars = GODagPltVars()
         godag_plg_vars.fmthdr = "{GO}"
 
+        # Plot title
+        title = Path(plot_outfile).with_suffix("").name.replace("_", " ")
+        title += " representation\n"
+        title += f"Top{self.plot_max_num} GOterm "
+        if self.use_adjusted_pvalue:
+            title += f"(BH adjusted P-value < {self.pvalue_thr})"
+        else:
+            title += f"(P-value < {self.pvalue_thr})"
+        title = f"\n{title}\n"
+
         # Create plot obj & add plot color
         godagplot = GODagSmallPlot(
-            godagsmall, abodag=obodag, GODagPltVars=godag_plg_vars
+            godagsmall, abodag=obodag, GODagPltVars=godag_plg_vars, title=title
         )
         godagplot.goid2color = goid2color
 
