@@ -214,9 +214,19 @@ class GOEA:
         godag_plg_vars = GODagPltVars()
         godag_plg_vars.fmthdr = "{GO}"
 
+        # Plot title
+        title = Path(plot_outfile).with_suffix("").name.replace("_", " ")
+        title += " representation\n"
+        title += f"Top{self.plot_max_num} GOterm "
+        if self.use_adjusted_pvalue:
+            title += f"(BH adjusted P-value < {self.pvalue_thr})"
+        else:
+            title += f"(P-value < {self.pvalue_thr})"
+        title = f"\n{title}\n"
+
         # Create plot obj & add plot color
         godagplot = GODagSmallPlot(
-            godagsmall, abodag=obodag, GODagPltVars=godag_plg_vars
+            godagsmall, abodag=obodag, GODagPltVars=godag_plg_vars, title=title
         )
         godagplot.goid2color = goid2color
 
