@@ -125,7 +125,7 @@ def main(
     with open(significant_go_count_file, "w") as f:
         header = (
             "NODE_ID\tGAIN/LOSS\tGO_CATEGORY\tOVER/UNDER\t"
-            + f"SIGNIFICANT_GO_COUNT\tSIGNIFICANT_GO_LIST\n"
+            + "SIGNIFICANT_GO_COUNT\tSIGNIFICANT_GO_LIST\n"
         )
         f.write(header)
         f.write(significant_go_count_info)
