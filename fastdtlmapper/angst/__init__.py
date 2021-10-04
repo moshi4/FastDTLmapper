@@ -1,6 +1,6 @@
-from lib.angst.event_map import AngstEventMap
-from lib.angst.model import NodeEvent, Transfer
-from lib.angst.transfer_gene import AngstTransferGene
+from fastdtlmapper.angst.event_map import AngstEventMap
+from fastdtlmapper.angst.model import NodeEvent, Transfer
+from fastdtlmapper.angst.transfer_gene import AngstTransferGene
 
 __all__ = [
     "AngstEventMap",

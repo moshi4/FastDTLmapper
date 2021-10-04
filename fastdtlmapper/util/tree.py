@@ -3,7 +3,7 @@ from typing import Dict
 
 from Bio import Phylo, SeqIO
 from Bio.Phylo.BaseTree import Tree
-from lib.angst.model import NodeEvent
+from fastdtlmapper.angst.model import NodeEvent
 
 
 @dataclass
