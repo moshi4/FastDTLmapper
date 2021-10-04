@@ -4,8 +4,8 @@ from typing import List
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
 
-from lib.angst import NodeEvent, Transfer
-from lib.util import UtilSeq
+from fastdtlmapper.angst.model import NodeEvent, Transfer
+from fastdtlmapper.util import UtilSeq
 
 
 @dataclass

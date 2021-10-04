@@ -5,15 +5,17 @@ import subprocess as sp
 from collections import defaultdict
 from typing import Dict, List
 
-from lib.angst import AngstEventMap, AngstTransferGene, NodeEvent
-from lib.config import Config, get_config
-from lib.input_check import InputCheck
-from lib.reconcilation import Reconciliation as Rec
-from lib.util import UtilSeq, UtilTree
+from fastdtlmapper.angst import AngstEventMap, AngstTransferGene, NodeEvent
+from fastdtlmapper.config import Config, get_config
+from fastdtlmapper.input_check import InputCheck
+from fastdtlmapper.reconcilation import Reconciliation as Rec
+from fastdtlmapper.util import UtilSeq, UtilTree
 
 
-def main(config: Config):
+def main():
     """Main function"""
+    # Get run config
+    config = get_config()
     # Check user input
     InputCheck(config.indir, config.tree_file).run()
     # # 00. Prepare analysis data
@@ -33,6 +35,8 @@ def main(config: Config):
     group_id2all_node_event = aggregate_dtl_results(config)
     output_aggregate_map_results(config, group_id2all_node_event)
     output_aggregate_transfer_results(config)
+
+    config.output_run_config_log()
 
 
 def format_user_tree(config: Config) -> None:
@@ -307,6 +311,4 @@ def output_aggregate_transfer_results(config: Config) -> None:
 
 
 if __name__ == "__main__":
-    config = get_config()
-    main(config)
-    config.output_run_config_log()
+    main()

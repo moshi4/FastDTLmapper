@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Fast genome-wide DTL(Duplication-Transfer-Loss) event mapping tool"
 authors = ["moshi"]
 
+[tool.poetry.scripts]
+FastDTLmapper = "fastdtlmapper.scripts.FastDTLmapper:main"
+FastDTLgoea = "fastdtlmapper.scripts.FastDTLgoea:main"
+
 [tool.poetry.dependencies]
 python = ">=3.7.1,<3.10"
 biopython = "^1.79"
@@ -11,6 +15,8 @@ scipy = "^1.7.1"
 goatools = "^1.1.6"
 pandas = "^1.3.3"
 numpy = "^1.21.2"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

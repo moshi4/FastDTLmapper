@@ -4,7 +4,7 @@ from typing import Dict
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
-from lib.angst.model import NodeEvent, Transfer
+from fastdtlmapper.angst.model import NodeEvent, Transfer
 
 
 @dataclass

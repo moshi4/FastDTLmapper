@@ -5,7 +5,7 @@ from typing import List
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
 
-from lib.util import UtilSeq
+from fastdtlmapper.util import UtilSeq
 
 
 @dataclass

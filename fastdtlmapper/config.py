@@ -98,7 +98,7 @@ class Config:
     def _add_bin_path(self) -> None:
         """Add bin programs path"""
         # Bin path list
-        bin_path = Path(__file__).parent.parent / "bin"
+        bin_path = Path(__file__).parent / "bin"
         mafft_path = bin_path / "mafft"
         ortho_finder_path = bin_path / "OrthoFinder"
         ortho_finder_tool_path = ortho_finder_path / "tools"

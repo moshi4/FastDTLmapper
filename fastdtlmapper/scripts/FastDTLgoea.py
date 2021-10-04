@@ -10,28 +10,20 @@ from pathlib import Path
 from typing import Tuple
 
 import pandas as pd
+from fastdtlmapper.goea import GOEA, OgGoAssociation
 
-from lib.goea import GOEA, OgGoAssociation
 
+def main():
+    """Run GOEA(GO Enrichment Analysis) for FastDTLmapper result"""
+    # Get arguments
+    args = get_args()
+    indir = args.indir
+    plot_pvalue_thr = args.plot_pvalue_thr
+    plot_max_num = args.plot_max_num
+    plot_format = args.plot_format
+    plot_color = args.plot_color
+    use_adjusted_pvalue = args.adjusted_pvalue
 
-def main(
-    indir: Path,
-    plot_pvalue_thr: float,
-    plot_max_num: int,
-    plot_format: str,
-    plot_color: str,
-    use_adjusted_pvalue: bool,
-):
-    """Run GOEA(GO Enrichment Analysis) for FastDTLmapper result
-
-    Args:
-        indir (Path): FastDTLmapper result directory
-        plot_pvalue_thr (float): Plot GOterm pvalue threshold
-        plot_max_num (int): Plot GOterm max number
-        plot_format (str): Plot file format
-        plot_color (str): Plot specified hexcolor
-        use_adjusted_pvalue (bool): Use adjusted pvalue or not
-    """
     # Output directory
     outdir = indir / "04_functional_analysis"
     go_annotation_dir = outdir / "go_annotation"
@@ -412,12 +404,4 @@ def format_significant_go_dataframe(
 
 
 if __name__ == "__main__":
-    args = get_args()
-    main(
-        args.indir,
-        args.plot_pvalue_thr,
-        args.plot_max_num,
-        args.plot_format,
-        args.plot_color,
-        args.adjusted_pvalue,
-    )
+    main()
