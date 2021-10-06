@@ -5,7 +5,7 @@ from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
 
 from fastdtlmapper.angst.model import NodeEvent, Transfer
-from fastdtlmapper.util import UtilSeq
+from fastdtlmapper.util import UtilFasta
 
 
 @dataclass
@@ -29,7 +29,7 @@ class Reconciliation:
             List[NodeEvent]: DTL reconciliation node event list
         """
         node_event_list = []
-        gene_species_names = UtilSeq.get_uniq_species_name_list(fasta_file)
+        gene_species_names = UtilFasta(fasta_file).uniq_species_name_list
         tree: Tree = Phylo.read(species_tree_file, "newick")
 
         # Case: brn & dup in one leaf
@@ -126,7 +126,7 @@ class Reconciliation:
             List[NodeEvent]: DTL reconciliation node event list
         """
         node_event_list = []
-        gene_species_name = UtilSeq.get_uniq_species_name_list(fasta_file)[0]
+        gene_species_name = UtilFasta(fasta_file).uniq_species_name_list[0]
         tree: Tree = Phylo.read(species_tree_file, "newick")
 
         for node in tree.find_clades():

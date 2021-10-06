@@ -9,7 +9,7 @@ from fastdtlmapper.angst import AngstEventMap, AngstTransferGene, NodeEvent
 from fastdtlmapper.config import Config, get_config
 from fastdtlmapper.input_check import InputCheck
 from fastdtlmapper.reconcilation import Reconciliation as Rec
-from fastdtlmapper.util import UtilSeq, UtilTree
+from fastdtlmapper.util import UtilFasta, UtilGenbank, UtilTree
 
 
 def main():
@@ -60,9 +60,9 @@ def format_user_fasta(config: Config) -> None:
         filesymbol = infile.stem.replace("|", "_")
         id_prefix = f"{filesymbol}_GENE"
         if infile.suffix in (".fa", ".faa", ".fasta"):
-            UtilSeq.add_serial_id(infile, fasta_outfile, id_prefix)
+            UtilFasta(infile).add_serial_id(fasta_outfile, id_prefix)
         elif infile.suffix in (".gb", ".gbk", ".genbank"):
-            UtilSeq.gbk2cds_fasta(infile, fasta_outfile, "protein", id_prefix)
+            UtilGenbank(infile).convert_cds_fasta(fasta_outfile, "protein", id_prefix)
 
 
 def orthofinder_run(config: Config) -> None:
@@ -97,7 +97,7 @@ def mafft_run(config: Config) -> None:
         group_id = dtl_rec_group_dir.name
         fasta_file = dtl_rec_group_dir / (group_id + ".fa")
         aln_file = fasta_file.with_name(group_id + "_aln.fa")
-        if UtilSeq.count_fasta_seq(fasta_file) >= 3:
+        if UtilFasta(fasta_file).seq_num >= 3:
             mafft_cmd = config.mafft_cmd(fasta_file, aln_file)
             mafft_cmd_list.append(mafft_cmd)
 
@@ -123,9 +123,7 @@ def trimal_run(config: Config) -> None:
     for aln_file in sorted(config.dtl_rec_dir.glob("**/*_aln.fa")):
         group_id = aln_file.parent.name
         aln_trim_file = aln_file.parent / (group_id + "_aln_trim.fa")
-        aln_seq_num = UtilSeq.count_fasta_seq(aln_file)
-        aln_trim_seq_num = UtilSeq.count_fasta_seq(aln_trim_file)
-        if aln_seq_num > aln_trim_seq_num:
+        if UtilFasta(aln_file).seq_num > UtilFasta(aln_trim_file).seq_num:
             shutil.copy(aln_file, aln_trim_file)
 
 
@@ -138,8 +136,8 @@ def iqtree_run(config: Config) -> None:
         iqtree_outdir = aln_trim_file.parent / "iqtree"
         iqtree_outdir.mkdir(exist_ok=True)
         iqtree_prefix = iqtree_outdir / group_id
-        seq_num = UtilSeq.count_fasta_seq(aln_trim_file)
-        uniqseq_num = UtilSeq.count_fasta_uniqseq(aln_trim_file)
+        seq_num = UtilFasta(aln_trim_file).seq_num
+        uniqseq_num = UtilFasta(aln_trim_file).uniq_seq_num
         if seq_num >= 4 and uniqseq_num >= 4:
             iqtree_cmd = config.iqtree_cmd(aln_trim_file, iqtree_prefix)
             iqtree_cmd_list.append(iqtree_cmd)
@@ -180,7 +178,7 @@ def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
     for dtl_rec_group_dir in sorted(config.dtl_rec_dir.glob("*")):
         group_id = dtl_rec_group_dir.name
         group_fasta_file = dtl_rec_group_dir / (group_id + ".fa")
-        seq_count = UtilSeq.count_fasta_seq(group_fasta_file)
+        seq_count = UtilFasta(group_fasta_file).seq_num
         if seq_count >= 3:
             # Get DTL reconciliation event map
             angst_result_dir = dtl_rec_group_dir / "angst"
@@ -210,7 +208,7 @@ def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
         group_id2node_event_list[group_id] = node_event_list
 
         # DTL result consistency check
-        species_name2seq_num = UtilSeq.get_species_name2seq_num(group_fasta_file)
+        species_name2seq_num = UtilFasta(group_fasta_file).species_name2seq_num
         for species_name, seq_num in species_name2seq_num.items():
             for node_event in node_event_list:
                 # Species 'seq_num' must be equal node event 'gene_num'

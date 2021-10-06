@@ -1,7 +1,9 @@
-from fastdtlmapper.util.seq import UtilSeq
+from fastdtlmapper.util.fasta import UtilFasta
+from fastdtlmapper.util.genbank import UtilGenbank
 from fastdtlmapper.util.tree import UtilTree
 
 __all__ = [
-    "UtilSeq",
+    "UtilFasta",
+    "UtilGenbank",
     "UtilTree",
 ]
