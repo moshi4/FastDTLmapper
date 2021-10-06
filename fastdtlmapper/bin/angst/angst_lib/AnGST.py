@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # AnGST
 
 # python libraries
@@ -28,5 +28,3 @@ angst_inputs = [input_dict]
 input_dict['write_out'] = True
 input_dict['start_time'] = start_time
 RunAnGST(input_dict)
-
-
