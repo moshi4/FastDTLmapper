@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
@@ -12,8 +12,17 @@ from fastdtlmapper.util import UtilSeq
 class InputCheck:
     """User input check Class"""
 
-    fasta_or_genbank_dir: Path
-    nwk_tree_file: Path
+    fasta_or_genbank_dir: Union[str, Path]
+    nwk_tree_file: Union[str, Path]
+    valid_fasta_suffix_list: List[str] = field(
+        default_factory=lambda: [".fa", ".faa", ".fasta"]
+    )
+    valid_genbank_suffix_list: List[str] = field(
+        default_factory=lambda: [".gb", ".gbk", ".genbank"]
+    )
+    invalid_char_list: List[str] = field(
+        default_factory=lambda: ["'", '"', "-", "_", "|"]
+    )
 
     def __post_init__(self):
         self.fasta_or_genbank_dir = Path(self.fasta_or_genbank_dir)
