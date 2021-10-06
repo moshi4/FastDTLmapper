@@ -5,7 +5,7 @@ from typing import List, Union
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
 
-from fastdtlmapper.util import UtilSeq
+from fastdtlmapper.util import UtilFasta, UtilGenbank
 
 
 @dataclass
@@ -60,12 +60,12 @@ class InputCheck:
         for file in fasta_or_genbank_file_list:
             # Check valid fasta file or not
             if file.suffix in self.valid_fasta_suffix_list:
-                if not UtilSeq.is_fasta_file(file):
+                if not UtilFasta(file).is_valid_format:
                     print(f"ERROR: Input file '{file}' is invalid fasta format!!")
                     exit(1)
             # Check valid genbank file or not
             if file.suffix in self.valid_genbank_suffix_list:
-                if not UtilSeq.is_genbank_file(file):
+                if not UtilGenbank(file).is_valid_format:
                     print(f"ERROR: Input file '{file}' is invalid genbank format!!")
                     exit(1)
 
