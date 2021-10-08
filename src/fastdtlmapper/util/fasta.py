@@ -29,7 +29,7 @@ class UtilFasta:
     def is_valid_format(self) -> bool:
         """Check fasta format file or not"""
         try:
-            SeqIO.parse(self.file, "fasta")
+            SeqIO.parse(self.fasta_file, "fasta")
         except Exception:
             return False
         return True
@@ -64,7 +64,7 @@ class UtilFasta:
             id_prefix (str, optional): Id prefix tag. Defaults to "GENE".
         """
         fix_records = []
-        for cnt, record in enumerate(SeqIO.parse(self.fasta_infile, format="fasta"), 1):
+        for cnt, record in enumerate(SeqIO.parse(self.fasta_file, format="fasta"), 1):
             serial_id_tag = f"{id_prefix}{cnt:06d}"
             record.id = f"{serial_id_tag} {record.id} "
             record.description = f"{serial_id_tag} {record.description} "
