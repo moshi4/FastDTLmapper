@@ -3,60 +3,71 @@ import datetime
 import shutil
 import subprocess as sp
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict, List
 
 from fastdtlmapper.angst import AngstEventMap, AngstTransferGene, NodeEvent
-from fastdtlmapper.config import Config, get_config
+from fastdtlmapper.args import Args, get_args
+from fastdtlmapper.cmd import Cmd
 from fastdtlmapper.input_check import InputCheck
+from fastdtlmapper.out_path import OutPath
 from fastdtlmapper.reconcilation import Reconciliation as Rec
+from fastdtlmapper.setup_binpath import SetupBinpath
 from fastdtlmapper.util import UtilFasta, UtilGenbank, UtilTree
 
 
 def main():
     """Main function"""
-    # Get run config
-    config = get_config()
+    # Get configs (arguments, output_path, command)
+    args = get_args()
+    outpath = OutPath(args.outdir)
+    cmd = Cmd()
+
+    # Setup binary path
+    root_binpath = Path(__file__).parent.parent / "bin"
+    SetupBinpath(root_binpath)
+
     # Check user input
-    InputCheck(config.indir, config.tree_file).run()
+    InputCheck(args.indir, args.tree_file).run()
     # # 00. Prepare analysis data
-    format_user_tree(config)
-    format_user_fasta(config)
+    format_user_tree(args.tree_file, outpath, cmd)
+    format_user_fasta(args.indir, outpath.user_fasta_dir)
     # 01. Grouping ortholog sequences using OrthoFinder
-    orthofinder_run(config)
+    orthofinder_run(outpath, cmd)
     # 02. Align each OG(Ortholog Group) sequences using mafft
-    mafft_run(config)
+    mafft_run(outpath, cmd)
     # 03. Trim each OG alignment using trimal
-    trimal_run(config)
+    trimal_run(outpath, cmd)
     # 04. Reconstruct each OG gene tree using iqtree
-    iqtree_run(config)
+    iqtree_run(outpath, cmd)
     # 05. DTL reconciliation using AnGST
-    angst_run(config)
+    angst_run(outpath, cmd)
     # 06. Aggregate and map DTL reconciliation result
-    group_id2all_node_event = aggregate_dtl_results(config)
-    output_aggregate_map_results(config, group_id2all_node_event)
-    output_aggregate_transfer_results(config)
+    group_id2all_node_event = aggregate_dtl_results(args, outpath)
+    output_aggregate_map_results(outpath, group_id2all_node_event)
+    output_aggregate_transfer_results(outpath)
 
-    config.output_run_config_log()
+    args.write_log(outpath.run_config_log_file)
 
 
-def format_user_tree(config: Config) -> None:
+def format_user_tree(tree_file: Path, outpath: OutPath, cmd: Cmd) -> None:
     """Format user newick tree file (Make ultrametric & Add node id)"""
     # Copy raw user input tree file
-    shutil.copy(config.tree_file, config.user_tree_file)
+    shutil.copy(tree_file, outpath.user_tree_file)
     # Make ultrametric tree
-    make_ultrametric_cmd = config.make_ultrametric_cmd(
-        config.user_tree_file, config.um_tree_file
+    make_ultrametric_cmd = cmd.get_make_ultrametric_cmd(
+        outpath.user_tree_file, outpath.um_tree_file
     )
     sp.run(make_ultrametric_cmd, shell=True)
     # Add internal node id (e.g. N001,N002,...N0XX)
-    UtilTree.add_internal_node_id(config.um_tree_file, config.um_nodeid_tree_file)
+    UtilTree.add_internal_node_id(outpath.um_tree_file, outpath.um_nodeid_tree_file)
 
 
-def format_user_fasta(config: Config) -> None:
+def format_user_fasta(fasta_dir: Path, format_fasta_dir: Path) -> None:
     """Format fasta file from fasta or genbank file"""
-    infiles = [f for f in config.indir.glob("*") if f.is_file()]
+    infiles = [f for f in fasta_dir.glob("*") if f.is_file()]
     for infile in infiles:
-        fasta_outfile = config.user_fasta_dir / infile.with_suffix(".fa").name
+        fasta_outfile = format_fasta_dir / infile.with_suffix(".fa").name
         filesymbol = infile.stem.replace("|", "_")
         id_prefix = f"{filesymbol}_GENE"
         if infile.suffix in (".fa", ".faa", ".fasta"):
@@ -65,73 +76,75 @@ def format_user_fasta(config: Config) -> None:
             UtilGenbank(infile).convert_cds_fasta(fasta_outfile, "protein", id_prefix)
 
 
-def orthofinder_run(config: Config) -> None:
+def orthofinder_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run OrthoFinder"""
     print("\n# 01. Grouping ortholog sequences using OrthoFinder")
     # Get OrthoFinder output directory name
     weekday = datetime.date.today().strftime("%b%d")
-    ortho_result_dir = config.ortho_tmpwork_dir / ("Results_" + weekday)
+    ortho_result_dir = outpath.ortho_tmpwork_dir / ("Results_" + weekday)
     # Run OrthoFinder
-    orthofinder_cmd = config.orthofinder_cmd(config.user_fasta_dir)
+    orthofinder_cmd = cmd.get_orthofinder_cmd(outpath.user_fasta_dir)
     sp.run(orthofinder_cmd, shell=True)
     # Move output result & remove unnecessary directory
-    shutil.rmtree(config.ortho_dir)
-    config.ortho_dir.mkdir(exist_ok=True)
+    shutil.rmtree(outpath.ortho_dir)
+    outpath.ortho_dir.mkdir(exist_ok=True)
     for data in ortho_result_dir.glob("*"):
-        shutil.move(str(data), config.ortho_dir)
+        shutil.move(str(data), outpath.ortho_dir)
     shutil.rmtree(ortho_result_dir.parent)
 
     # Copy OrthologGroup fasta to DTL reconciliation analysis directory
-    for fasta_file in sorted(config.ortho_group_fasta_dir.glob("*.fa")):
+    for fasta_file in sorted(outpath.ortho_group_fasta_dir.glob("*.fa")):
         group_id = fasta_file.stem
-        dtl_rec_group_dir = config.dtl_rec_dir / group_id
+        dtl_rec_group_dir = outpath.dtl_rec_dir / group_id
         dtl_rec_group_dir.mkdir(exist_ok=True)
         shutil.copy(fasta_file, dtl_rec_group_dir)
 
 
-def mafft_run(config: Config) -> None:
+def mafft_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run mafft"""
     print("\n# 02. Align each OG(Ortholog Group) sequences using mafft")
     mafft_cmd_list = []
-    for dtl_rec_group_dir in sorted(config.dtl_rec_dir.glob("*")):
+    for dtl_rec_group_dir in sorted(outpath.dtl_rec_dir.glob("*")):
         group_id = dtl_rec_group_dir.name
         fasta_file = dtl_rec_group_dir / (group_id + ".fa")
         aln_file = fasta_file.with_name(group_id + "_aln.fa")
         if UtilFasta(fasta_file).seq_num >= 3:
-            mafft_cmd = config.mafft_cmd(fasta_file, aln_file)
+            mafft_cmd = cmd.get_mafft_cmd(fasta_file, aln_file)
             mafft_cmd_list.append(mafft_cmd)
 
-    mafft_parallel_cmd = config.parallel_cmd(mafft_cmd_list, "mafft")
-    sp.run(mafft_parallel_cmd, shell=True)
+    cmd.run_parallel_cmd(
+        mafft_cmd_list, outpath.tmp_parallel_cmds_file, outpath.mafft_output_log_file
+    )
 
 
-def trimal_run(config: Config) -> None:
+def trimal_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run trimal"""
     print("\n# 03. Trim each OG alignment using trimal")
     trimal_cmd_list = []
-    for aln_file in sorted(config.dtl_rec_dir.glob("**/*_aln.fa")):
+    for aln_file in sorted(outpath.dtl_rec_dir.glob("**/*_aln.fa")):
         group_id = aln_file.parent.name
         aln_trim_file = aln_file.parent / (group_id + "_aln_trim.fa")
-        trimal_cmd = config.trimal_cmd(aln_file, aln_trim_file)
+        trimal_cmd = cmd.get_trimal_cmd(aln_file, aln_trim_file)
         trimal_cmd_list.append(trimal_cmd)
         shutil.copy(aln_file, aln_trim_file)
 
-    trimal_parallel_cmd = config.parallel_cmd(trimal_cmd_list, "trimal")
-    sp.run(trimal_parallel_cmd, shell=True)
+    cmd.run_parallel_cmd(
+        trimal_cmd_list, outpath.tmp_parallel_cmds_file, outpath.trimal_output_log_file
+    )
 
     # If trimal removed sequence, use raw mafft alignment in next step
-    for aln_file in sorted(config.dtl_rec_dir.glob("**/*_aln.fa")):
+    for aln_file in sorted(outpath.dtl_rec_dir.glob("**/*_aln.fa")):
         group_id = aln_file.parent.name
         aln_trim_file = aln_file.parent / (group_id + "_aln_trim.fa")
         if UtilFasta(aln_file).seq_num > UtilFasta(aln_trim_file).seq_num:
             shutil.copy(aln_file, aln_trim_file)
 
 
-def iqtree_run(config: Config) -> None:
+def iqtree_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run iqtree"""
     print("\n# 04. Reconstruct each OG gene tree using iqtree")
     iqtree_cmd_list = []
-    for aln_trim_file in sorted(config.dtl_rec_dir.glob("**/*_aln_trim.fa")):
+    for aln_trim_file in sorted(outpath.dtl_rec_dir.glob("**/*_aln_trim.fa")):
         group_id = aln_trim_file.parent.name
         iqtree_outdir = aln_trim_file.parent / "iqtree"
         iqtree_outdir.mkdir(exist_ok=True)
@@ -139,11 +152,11 @@ def iqtree_run(config: Config) -> None:
         seq_num = UtilFasta(aln_trim_file).seq_num
         uniqseq_num = UtilFasta(aln_trim_file).uniq_seq_num
         if seq_num >= 4 and uniqseq_num >= 4:
-            iqtree_cmd = config.iqtree_cmd(aln_trim_file, iqtree_prefix)
+            iqtree_cmd = cmd.get_iqtree_cmd(aln_trim_file, iqtree_prefix)
             iqtree_cmd_list.append(iqtree_cmd)
         elif seq_num >= 4 and uniqseq_num < 4:
             # iqtree bootstrap option cannot handle less than 4 identical sequences
-            iqtree_cmd = config.iqtree_cmd(aln_trim_file, iqtree_prefix, boot=False)
+            iqtree_cmd = cmd.get_iqtree_cmd(aln_trim_file, iqtree_prefix, boot=False)
             sp.run(iqtree_cmd, shell=True)
             shutil.copy(
                 str(iqtree_prefix) + ".treefile", str(iqtree_prefix) + ".ufboot"
@@ -153,36 +166,38 @@ def iqtree_run(config: Config) -> None:
             gene_tree_file = str(iqtree_prefix) + ".ufboot"
             UtilTree.make_3genes_tree(aln_trim_file, gene_tree_file)
 
-    iqtree_parallel_cmd = config.parallel_cmd(iqtree_cmd_list, "iqtree")
-    sp.run(iqtree_parallel_cmd, shell=True)
+    cmd.run_parallel_cmd(
+        iqtree_cmd_list, outpath.tmp_parallel_cmds_file, outpath.iqtree_output_log_file
+    )
 
 
-def angst_run(config: Config) -> None:
+def angst_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run AnGST"""
     print("\n# 05. DTL reconciliation using AnGST")
     angst_cmd_list = []
-    for boot_tree_file in sorted(config.dtl_rec_dir.glob("**/*.ufboot")):
+    for boot_tree_file in sorted(outpath.dtl_rec_dir.glob("**/*.ufboot")):
         outdir = boot_tree_file.parent.parent / "angst"
         outdir.mkdir(exist_ok=True)
-        angst_cmd = config.angst_cmd(config.um_tree_file, boot_tree_file, outdir)
+        angst_cmd = cmd.get_angst_cmd(outpath.um_tree_file, boot_tree_file, outdir)
         angst_cmd_list.append(angst_cmd)
 
-    angst_parallel_cmd = config.parallel_cmd(angst_cmd_list, "AnGST")
-    sp.run(angst_parallel_cmd, shell=True)
+    cmd.run_parallel_cmd(
+        angst_cmd_list, outpath.tmp_parallel_cmds_file, outpath.angst_output_log_file
+    )
 
 
-def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
+def aggregate_dtl_results(args: Args, outpath: OutPath) -> Dict[str, List[NodeEvent]]:
     """Aggregate DTL reconciliation result"""
     print("\n# 06. Aggregate and map DTL reconciliation result")
     group_id2node_event_list: Dict[str, List[NodeEvent]] = {}
-    for dtl_rec_group_dir in sorted(config.dtl_rec_dir.glob("*")):
+    for dtl_rec_group_dir in sorted(outpath.dtl_rec_dir.glob("*")):
         group_id = dtl_rec_group_dir.name
         group_fasta_file = dtl_rec_group_dir / (group_id + ".fa")
         seq_count = UtilFasta(group_fasta_file).seq_num
         if seq_count >= 3:
             # Get DTL reconciliation event map
             angst_result_dir = dtl_rec_group_dir / "angst"
-            event_map = AngstEventMap(config.um_nodeid_tree_file, angst_result_dir)
+            event_map = AngstEventMap(outpath.um_nodeid_tree_file, angst_result_dir)
 
             # Map each group DTL event to newick tree
             gain_loss_map_file = dtl_rec_group_dir / (group_id + "_gain_loss_map.nwk")
@@ -195,14 +210,14 @@ def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
 
         elif seq_count == 2:
             node_event_list = Rec.two_species(
-                config.um_nodeid_tree_file,
+                outpath.um_nodeid_tree_file,
                 group_fasta_file,
-                config.los_cost,
-                config.trn_cost,
+                args.los_cost,
+                args.trn_cost,
             )
         elif seq_count == 1:
             node_event_list = Rec.one_species(
-                config.um_nodeid_tree_file, group_fasta_file
+                outpath.um_nodeid_tree_file, group_fasta_file
             )
 
         group_id2node_event_list[group_id] = node_event_list
@@ -226,7 +241,7 @@ def aggregate_dtl_results(config: Config) -> Dict[str, List[NodeEvent]]:
 
 
 def output_aggregate_map_results(
-    config: Config, group_id2node_event_list: Dict[str, List[NodeEvent]]
+    outpath: OutPath, group_id2node_event_list: Dict[str, List[NodeEvent]]
 ):
     """Output aggregated results and mapped dtl reconciliation results"""
     # Output results in TSV format
@@ -234,7 +249,7 @@ def output_aggregate_map_results(
     for group_id, node_event_list in group_id2node_event_list.items():
         for node_event in node_event_list:
             output_content += f"{group_id}\t{node_event.as_tsv_format}\n"
-    with open(config.all_node_event_file, "w") as f:
+    with open(outpath.all_node_event_file, "w") as f:
         header = (
             "OG_ID\tNODE_ID\tGENE_NUM\tGAIN_NUM\tBRN_NUM\tDUP_NUM\t"
             + "TRN_NUM\tLOS_NUM\tTRN_DETAIL"
@@ -253,27 +268,27 @@ def output_aggregate_map_results(
             nodeid2total_node_event[node_id] += node_event
 
     UtilTree.map_node_event(
-        config.um_nodeid_tree_file,
+        outpath.um_nodeid_tree_file,
         nodeid2total_node_event,
-        config.all_gain_loss_map_file,
+        outpath.all_gain_loss_map_file,
         "gain-loss",
     )
     UtilTree.map_node_event(
-        config.um_nodeid_tree_file,
+        outpath.um_nodeid_tree_file,
         nodeid2total_node_event,
-        config.all_dtl_map_file,
+        outpath.all_dtl_map_file,
         "dtl",
     )
 
 
-def output_aggregate_transfer_results(config: Config) -> None:
+def output_aggregate_transfer_results(outpath: OutPath) -> None:
     """Output aggregated transfer results"""
     trn_gene_list: List[AngstTransferGene] = []
     trn_fromto2all_gene_id_list = defaultdict(list)
-    for angst_result_dir in sorted(config.dtl_rec_dir.glob("**/angst/")):
+    for angst_result_dir in sorted(outpath.dtl_rec_dir.glob("**/angst/")):
         og_id = angst_result_dir.parent.name
         trn_gene = AngstTransferGene(
-            config.um_nodeid_tree_file, angst_result_dir, og_id
+            outpath.um_nodeid_tree_file, angst_result_dir, og_id
         )
         trn_gene_list.append(trn_gene)
         for trn_fromto, gene_id_list in trn_gene.trn_fromto2gene_id_list.items():
@@ -285,7 +300,7 @@ def output_aggregate_transfer_results(config: Config) -> None:
         for trn_fromto, gene_id_list in trn_gene.trn_fromto2gene_id_list.items():
             for gene_id in gene_id_list:
                 all_trn_genes_info += f"{trn_gene.group_id}\t{gene_id}\t{trn_fromto}\n"
-    with open(config.all_trn_genes_file, "w") as f:
+    with open(outpath.all_trn_genes_file, "w") as f:
         header = "OG_ID\tTRANSFER_DERIVED_GENE_ID\tTRANSFER_PATH\n"
         f.write(header)
         f.write(all_trn_genes_info)
@@ -300,7 +315,7 @@ def output_aggregate_transfer_results(config: Config) -> None:
         all_trn_count_info += (
             f"{trn_fromto}\t{all_gene_num}\t{'|'.join(all_gene_id_list)}\n"
         )
-    with open(config.all_trn_count_file, "w") as f:
+    with open(outpath.all_trn_count_file, "w") as f:
         header = (
             "TRANSFER_PATH\tTRANSFER_DERIVED_GENE_NUM\tTRANSFER_DERIVED_GENE_ID_LIST\n"
         )
