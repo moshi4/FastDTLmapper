@@ -31,7 +31,7 @@ def test_as_tsv_format():
     assert node_event.as_tsv_format == "0\t5\t4\t1\t3\t0\t1\t"
 
 
-def test___add__():
+def test_add():
     """__add__ test"""
     node_event1 = NodeEvent(0, 1, 3, 1, 0, [Transfer(10, 20)], 5)
     node_event2 = NodeEvent(0, 0, 2, 1, 1, [Transfer(30, 40)], 5)

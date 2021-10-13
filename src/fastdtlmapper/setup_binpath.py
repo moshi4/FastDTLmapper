@@ -24,23 +24,25 @@ class SetupBinpath:
     )
 
     def __post_init__(self):
-        self._add_bin_path()
+        bin_path_list = self._get_bin_path_list()
+        self._add_bin_path(bin_path_list)
         self._bin_exists_check(self.bin_list)
 
-    def _add_bin_path(self) -> None:
+    def _get_bin_path_list(self) -> List[Path]:
+        return [
+            self.root_binpath,
+            self.root_binpath / "mafft",
+            self.root_binpath / "OrthoFinder",
+            self.root_binpath / "OrthoFinder" / "tools",
+            self.root_binpath / "angst" / "angst_lib",
+        ]
+
+    def _add_bin_path(self, bin_path_list: List[Path]) -> None:
         """Add bin programs path"""
-        # Bin path list
-        mafft_path = self.root_binpath / "mafft"
-        ortho_finder_path = self.root_binpath / "OrthoFinder"
-        ortho_finder_tool_path = ortho_finder_path / "tools"
-        angst_path = self.root_binpath / "angst" / "angst_lib"
         # Add bin path
         env_path = os.environ["PATH"]
-        env_path = f"{self.root_binpath}:{env_path}"
-        env_path = f"{mafft_path}:{env_path}"
-        env_path = f"{ortho_finder_path}:{env_path}"
-        env_path = f"{ortho_finder_tool_path}:{env_path}"
-        env_path = f"{angst_path}:{env_path}"
+        for bin_path in bin_path_list:
+            env_path = f"{bin_path}:{env_path}"
         # Set fixed path
         os.environ["PATH"] = env_path
 

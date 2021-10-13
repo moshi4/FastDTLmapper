@@ -28,11 +28,10 @@ class UtilFasta:
     @property
     def is_valid_format(self) -> bool:
         """Check fasta format file or not"""
-        try:
-            SeqIO.parse(self.fasta_file, "fasta")
-        except Exception:
+        if self.seq_num == 0:
             return False
-        return True
+        else:
+            return True
 
     @property
     def species_name2seq_num(self) -> Dict[str, int]:
