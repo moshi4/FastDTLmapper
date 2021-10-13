@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
@@ -11,8 +11,8 @@ from Bio.Phylo.BaseTree import Tree
 class AngstTransferGene:
     """AnGST transfer gene Class"""
 
-    species_tree_file: str
-    angst_result_dir: str
+    species_tree_file: Union[str, Path]
+    angst_result_dir: Union[str, Path]
     group_id: Optional[str] = None
 
     def __post_init__(self):
@@ -29,7 +29,7 @@ class AngstTransferGene:
         with open(self.angst_leaf_file) as f:
             line_list = f.read().splitlines()
         tree: Tree = Phylo.read(self.species_tree_file, "newick")
-        donor_node, recipient_node = None, None
+        gene_id, donor_node, recipient_node = "", None, None
         for line in line_list:
             if line.startswith("leaf"):
                 gene_id = line[5:-1]

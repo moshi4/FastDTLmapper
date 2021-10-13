@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import os
 import sys
 import time
@@ -37,17 +38,17 @@ class Args:
             f.write(self.log_text)
 
     @property
-    def exec_cmd(self) -> str:
-        """Get exec command"""
-        return " ".join(sys.argv)
-
-    @property
     def log_text(self) -> str:
         """Get arguments log"""
-        elapsed_time = (time.time() - self._start_time) / 3600
+        end_time = time.time()
+        elapsed_time = (end_time - self._start_time) / 3600
+
+        def unixtime_to_datestr(unixtime: float) -> str:
+            return dt.datetime.fromtimestamp(unixtime).strftime("%Y/%m/%y %H:%M:%S")
+
         log_text = (
             "Run command:\n"
-            + f"{self.exec_cmd}\n\n"
+            + f"{' '.join(sys.argv)}\n\n"
             + f"Input directory = {self.indir}\n"
             + f"Tree file = {self.tree_file}\n"
             + f"Output directory = {self.outdir}\n"
@@ -57,6 +58,8 @@ class Args:
             + f"Transfer event cost = {self.trn_cost}\n"
             + f"MCL inflation parameter = {self.inflation}\n"
             + f"Number of random seed = {self.rseed}\n\n"
+            + f"Start time = {unixtime_to_datestr(self._start_time)}\n"
+            + f"End time = {unixtime_to_datestr(end_time)}\n"
             + f"Elapsed time = {elapsed_time:.2f}[h]"
         )
         return log_text
@@ -97,7 +100,8 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         help="Output directory",
         metavar="OUT",
     )
-    default_processor_num = os.cpu_count() - 1
+    cpu_count = os.cpu_count()
+    default_processor_num = cpu_count - 1 if cpu_count is not None else 1
     parser.add_argument(
         "-p",
         "--process_num",

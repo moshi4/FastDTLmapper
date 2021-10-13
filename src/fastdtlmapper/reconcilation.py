@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List
+from pathlib import Path
+from typing import List, Union
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
@@ -14,8 +15,8 @@ class Reconciliation:
 
     @staticmethod
     def two_species(
-        species_tree_file: str,
-        fasta_file: str,
+        species_tree_file: Union[str, Path],
+        fasta_file: Union[str, Path],
         los_cost: int = 1,
         trn_cost: int = 3,
     ) -> List[NodeEvent]:
@@ -113,8 +114,8 @@ class Reconciliation:
 
     @staticmethod
     def one_species(
-        species_tree_file: str,
-        fasta_file: str,
+        species_tree_file: Union[str, Path],
+        fasta_file: Union[str, Path],
     ) -> List[NodeEvent]:
         """DTL reconciliation with one species gene
 

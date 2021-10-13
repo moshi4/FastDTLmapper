@@ -189,7 +189,8 @@ def get_args() -> argparse.Namespace:
 
     # Plot hexcolor check
     def is_valid_hexcolor(hexcolor: str) -> bool:
-        return re.search(r"^(?:[0-9a-fA-F]{3}){1,2}$", hexcolor)
+        search_result = re.search(r"^(?:[0-9a-fA-F]{3}){1,2}$", hexcolor)
+        return False if search_result is None else True
 
     if args.plot_color and not is_valid_hexcolor(args.plot_color):
         parser.error(

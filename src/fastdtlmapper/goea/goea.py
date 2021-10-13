@@ -3,7 +3,7 @@ import os
 import subprocess as sp
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from urllib import request
 
 import numpy as np
@@ -108,9 +108,6 @@ class GOEA:
         Returns:
             Dict[str, float]: GOterm & Pvalue dict
         """
-        if extract_type not in ("over", "under"):
-            raise ValueError("extract_type must be 'over' or 'under'!!")
-
         pvalue_column = "p_fdr_bh" if self.use_adjusted_pvalue else "p_uncorrected"
 
         df = pd.read_table(goea_result_file)
@@ -126,6 +123,9 @@ class GOEA:
                 & (df[pvalue_column] < self.pvalue_thr)
                 & (df["depth"] >= self.plot_min_depth)
             ]
+        else:
+            raise ValueError("extract_type must be 'over' or 'under'!!")
+
         extract_df = extract_df.head(self.plot_max_num)
 
         goterm2pvalue = {}
@@ -178,7 +178,7 @@ class GOEA:
 
     def _color_plot(
         self,
-        plot_outfile: str,
+        plot_outfile: Union[str, Path],
         goid2color: Dict[str, str],
         goid2pvalue: Dict[str, float] = {},
     ) -> None:

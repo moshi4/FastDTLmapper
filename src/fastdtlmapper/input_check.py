@@ -28,10 +28,6 @@ class InputCheck:
         self.fasta_or_genbank_dir = Path(self.fasta_or_genbank_dir)
         self.nwk_tree_file = Path(self.nwk_tree_file)
 
-        self.valid_fasta_suffix_list = (".fa", ".faa", ".fasta")
-        self.valid_genbank_suffix_list = (".gb", ".gbk", ".genbank")
-        self.invalid_char_list = ["'", '"', "-", "_", "|"]
-
     def run(self):
         """Run all check process"""
         fasta_or_genbank_file_list = self._get_fasta_or_genbank_file_list()
@@ -45,7 +41,7 @@ class InputCheck:
     def _get_fasta_or_genbank_file_list(self) -> List[Path]:
         """Get fasta or genbank file list"""
         fasta_or_genbank_file_list = []
-        for file in self.fasta_or_genbank_dir.glob("*"):
+        for file in Path(self.fasta_or_genbank_dir).glob("*"):
             if (
                 file.suffix in self.valid_fasta_suffix_list
                 or file.suffix in self.valid_genbank_suffix_list

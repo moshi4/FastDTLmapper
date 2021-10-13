@@ -2,7 +2,7 @@ import random
 import subprocess as sp
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from fastdtlmapper.args import Args, get_args
 
@@ -14,27 +14,33 @@ class Cmd:
     params: Args = field(default_factory=get_args)
 
     def get_make_ultrametric_cmd(
-        self, nwk_tree_infile: str, nwk_tree_outfile: str
+        self, nwk_tree_infile: Union[str, Path], nwk_tree_outfile: Union[str, Path]
     ) -> str:
         """Get make_ultrametric run command"""
         return f"make_ultrametric.py {nwk_tree_infile} {nwk_tree_outfile} "
 
-    def get_orthofinder_cmd(self, fasta_indir: str) -> str:
+    def get_orthofinder_cmd(self, fasta_indir: Union[str, Path]) -> str:
         """Get OrthoFinder run command"""
         return (
             f"orthofinder.py -og -f {fasta_indir} -t {self.params.process_num} "
             + f"-I {self.params.inflation}"
         )
 
-    def get_mafft_cmd(self, fasta_infile: str, aln_outfile: str) -> str:
+    def get_mafft_cmd(
+        self, fasta_infile: Union[str, Path], aln_outfile: Union[str, Path]
+    ) -> str:
         """Get mafft run command"""
         return f"mafft --auto --anysymbol --quiet {fasta_infile} > {aln_outfile} 2>&1"
 
-    def get_trimal_cmd(self, aln_infile: str, aln_trim_outfile: str) -> str:
+    def get_trimal_cmd(
+        self, aln_infile: Union[str, Path], aln_trim_outfile: Union[str, Path]
+    ) -> str:
         """Get trimal run command"""
         return f"trimal -in {aln_infile} -out {aln_trim_outfile} -automated1 2>&1"
 
-    def get_iqtree_cmd(self, aln_infile: str, prefix: str, boot: bool = True) -> str:
+    def get_iqtree_cmd(
+        self, aln_infile: Union[str, Path], prefix: Union[str, Path], boot: bool = True
+    ) -> str:
         """Get iqtree run command"""
         boot_opt = "--ufboot 1000 --boot-trees --wbtl" if boot else ""
         return (
@@ -43,7 +49,10 @@ class Cmd:
         )
 
     def get_angst_cmd(
-        self, species_tree_file: str, boot_tree_file: str, outdir: str
+        self,
+        species_tree_file: Union[str, Path],
+        boot_tree_file: Union[str, Path],
+        outdir: Union[str, Path],
     ) -> str:
         """Get AnGST run command"""
         timetree = "--timetree" if self.params.timetree else ""
@@ -56,8 +65,8 @@ class Cmd:
     def get_parallel_cmd(
         self,
         cmd_list: List[str],
-        parallel_cmds_file: Path,
-        parallel_log_file: Path,
+        parallel_cmds_file: Union[str, Path],
+        parallel_log_file: Union[str, Path],
     ) -> str:
         """Get parallel run command from command list"""
         random.seed(self.params.rseed)
@@ -74,12 +83,12 @@ class Cmd:
     def run_parallel_cmd(
         self,
         cmd_list: List[str],
-        parallel_cmds_file: Path,
-        parallel_log_file: Path,
+        parallel_cmds_file: Union[str, Path],
+        parallel_log_file: Union[str, Path],
     ) -> None:
         """Run parallel command"""
         parallel_cmd = self.get_parallel_cmd(
             cmd_list, parallel_cmds_file, parallel_log_file
         )
         sp.run(parallel_cmd, shell=True)
-        parallel_cmds_file.unlink(missing_ok=True)
+        Path(parallel_cmds_file).unlink(missing_ok=True)

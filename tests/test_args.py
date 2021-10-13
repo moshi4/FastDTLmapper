@@ -9,10 +9,12 @@ def test_get_args_default_ok():
     indir, tree_file, outdir = "indir/seq/", "indir/tree.nwk", "outdir/"
     argv = f"-i {indir} -t {tree_file} -o {outdir}"
     args = get_args(argv.split(" "))
+    cpu_count = os.cpu_count()
+    default_processor_num = cpu_count - 1 if cpu_count is not None else 1
     assert args.indir == Path(indir)
     assert args.tree_file == Path(tree_file)
     assert args.outdir == Path(outdir)
-    assert args.process_num == os.cpu_count() - 1
+    assert args.process_num == default_processor_num
     assert args.dup_cost == 2
     assert args.los_cost == 1
     assert args.trn_cost == 3

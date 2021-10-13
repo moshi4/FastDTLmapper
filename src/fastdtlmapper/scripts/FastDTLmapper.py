@@ -206,7 +206,7 @@ def aggregate_dtl_results(args: Args, outpath: OutPath) -> Dict[str, List[NodeEv
             event_map.write_tree(dtl_map_file, "dtl")
 
             # Get each group all node DTL event
-            node_event_list = event_map.nodeid2node_event.values()
+            node_event_list = list(event_map.nodeid2node_event.values())
 
         elif seq_count == 2:
             node_event_list = Rec.two_species(
@@ -219,6 +219,8 @@ def aggregate_dtl_results(args: Args, outpath: OutPath) -> Dict[str, List[NodeEv
             node_event_list = Rec.one_species(
                 outpath.um_nodeid_tree_file, group_fasta_file
             )
+        else:
+            raise ValueError("Unexpected fasta file detected!!")
 
         group_id2node_event_list[group_id] = node_event_list
 
