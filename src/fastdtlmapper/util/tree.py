@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Union
 
 from Bio import Phylo, SeqIO
 from Bio.Phylo.BaseTree import Tree
@@ -11,7 +12,10 @@ class UtilTree:
     """Tree Utility Class"""
 
     @staticmethod
-    def add_internal_node_id(nwk_tree_infile: str, nwk_tree_outfile: str) -> None:
+    def add_internal_node_id(
+        nwk_tree_infile: Union[str, Path],
+        nwk_tree_outfile: Union[str, Path],
+    ) -> None:
         """Add internal node to serial id (e.g. N001,N002,...N0XX)
 
         Args:
@@ -31,7 +35,10 @@ class UtilTree:
             f.write(replace_tree_info)
 
     @staticmethod
-    def make_3genes_tree(fasta_file: str, gene_tree_file: str) -> None:
+    def make_3genes_tree(
+        fasta_file: Union[str, Path],
+        gene_tree_file: Union[str, Path],
+    ) -> None:
         """Make 3 genes unrooted newick tree file
 
         Args:
@@ -52,9 +59,9 @@ class UtilTree:
 
     @staticmethod
     def map_node_event(
-        species_tree_infile: str,
+        species_tree_infile: Union[str, Path],
         node_id2node_event: Dict[str, NodeEvent],
-        nwk_tree_outfile: str,
+        nwk_tree_outfile: Union[str, Path],
         map_type: str,
     ):
         """Mapping node event to newick tree

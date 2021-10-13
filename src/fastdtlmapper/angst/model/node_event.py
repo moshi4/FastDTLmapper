@@ -10,7 +10,7 @@ from fastdtlmapper.angst.model.transfer import Transfer
 class NodeEvent:
     """Node Event DataClass"""
 
-    node_id: int
+    node_id: str
     brn_num: int = 0
     dup_num: int = 0
     los_num: int = 0
@@ -71,7 +71,10 @@ class NodeEvent:
         ret_obj.dup_num = self.dup_num + other.dup_num
         ret_obj.los_num = self.los_num + other.los_num
         ret_obj.trn_num = self.trn_num + other.trn_num
-        ret_obj.gene_num = self.gene_num + other.gene_num
+        if self.gene_num is None or other.gene_num is None:
+            ret_obj.gene_num = None
+        else:
+            ret_obj.gene_num = self.gene_num + other.gene_num
         ret_obj.trn_detail_list.extend(self.trn_detail_list)
         ret_obj.trn_detail_list.extend(other.trn_detail_list)
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Union
 
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
@@ -11,8 +11,8 @@ from fastdtlmapper.angst.model import NodeEvent, Transfer
 class AngstEventMap:
     """AnGST Event Map Class"""
 
-    species_tree_file: str
-    angst_result_dir: str
+    species_tree_file: Union[str, Path]
+    angst_result_dir: Union[str, Path]
 
     def __post_init__(self):
         self.species_tree_file = Path(self.species_tree_file)
@@ -53,10 +53,10 @@ class AngstEventMap:
 
         # Countup ancestor gene num from event map info
         for node_event in nodeid2node_event.values():
-            root_to_countup_node_path = [
-                tree.root,
-                *tree.get_path(node_event.node_id),
-            ]
+            root_to_target_node_path = tree.get_path(node_event.node_id)
+            if root_to_target_node_path is None:
+                root_to_target_node_path = []
+            root_to_countup_node_path = [tree.root, *root_to_target_node_path]
             gene_count = 0
             for node in root_to_countup_node_path:
                 node_event = nodeid2node_event[node.name]
@@ -73,7 +73,7 @@ class AngstEventMap:
             nodeid2node_event[node.name] = NodeEvent(node_id=node.name)
         return nodeid2node_event
 
-    def write_tree(self, outfile: str, map_type: str) -> None:
+    def write_tree(self, outfile: Union[str, Path], map_type: str) -> None:
         """Write event map tree newick file
 
         Args:

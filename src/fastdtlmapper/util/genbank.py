@@ -26,7 +26,7 @@ class UtilGenbank:
         return True
 
     def convert_cds_fasta(
-        self, fasta_outfile: str, seqtype: str, id_prefix: str = "GENE"
+        self, fasta_outfile: Union[str, Path], seqtype: str, id_prefix: str = "GENE"
     ) -> None:
         """Convert genbank to CDS fasta file
 
