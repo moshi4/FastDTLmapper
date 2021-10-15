@@ -5,7 +5,7 @@ from typing import List, Union
 from Bio import Phylo
 from Bio.Phylo.BaseTree import Tree
 
-from fastdtlmapper.util import UtilFasta, UtilGenbank
+from fastdtlmapper.util import UtilFasta, UtilGenbank, UtilTree
 
 
 @dataclass
@@ -33,10 +33,8 @@ class InputCheck:
         fasta_or_genbank_file_list = self._get_fasta_or_genbank_file_list()
         self._is_valid_fasta_or_genbank_format(fasta_or_genbank_file_list)
         self._is_valid_filename(fasta_or_genbank_file_list)
-        self._is_valid_newick_format()
-        self._is_rooted_tree()
-        tree: Tree = Phylo.read(self.nwk_tree_file, "newick")
-        self._check_tree_seqfile_consistency(fasta_or_genbank_file_list, tree)
+        self._check_rooted_tree()
+        self._check_tree_seqfile_consistency(fasta_or_genbank_file_list)
 
     def _get_fasta_or_genbank_file_list(self) -> List[Path]:
         """Get fasta or genbank file list"""
@@ -77,31 +75,18 @@ class InputCheck:
             print(f"ERROR: {self.invalid_char_list} characters are invaild!!")
             exit(1)
 
-    def _is_valid_newick_format(self) -> None:
-        """Check newick format or not"""
-        tree: Tree = Phylo.read(self.nwk_tree_file, "newick")
-        tree_node_num = len(list(tree.find_clades()))
-        # Check valid newick or not
-        if tree_node_num == 1:
-            print(
-                f"ERROR: Input file '{self.nwk_tree_file}' is invalid newick format!!"
-            )
-            exit(1)
-
-    def _is_rooted_tree(self) -> None:
+    def _check_rooted_tree(self) -> None:
         """Check rooted tree or not"""
-        tree: Tree = Phylo.read(self.nwk_tree_file, "newick")
-        if not tree.root.is_bifurcating():
+        if not UtilTree(self.nwk_tree_file).is_rooted_tree():
             print(f"ERROR: Input file '{self.nwk_tree_file}' is not rooted tree!!")
             exit(1)
 
-    def _check_tree_seqfile_consistency(
-        self, fasta_or_genbank_file_list: List[Path], tree: Tree
-    ):
+    def _check_tree_seqfile_consistency(self, fasta_or_genbank_file_list: List[Path]):
         """Check tree vs seqfile consistency"""
         seq_filename_list = [f.stem for f in fasta_or_genbank_file_list]
         seq_file_num = len(seq_filename_list)
 
+        tree: Tree = Phylo.read(self.nwk_tree_file, "newick")
         species_name_list = [leaf.name for leaf in tree.get_terminals()]
         species_num = len(species_name_list)
         # Check number of seqfile and tree species number

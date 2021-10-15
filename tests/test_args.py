@@ -44,3 +44,15 @@ def test_get_args_user_specified_ok():
     assert args.inflation == inflation
     assert args.timetree is True
     assert args.rseed == 100
+
+
+def test_write_log(tmp_path: Path):
+    """test write_log"""
+    indir, tree_file, outdir = "indir/seq/", "indir/tree.nwk", "outdir/"
+    argv = f"-i {indir} -t {tree_file} -o {outdir}"
+    args = get_args(argv.split(" "))
+
+    tmp_log_file = tmp_path / "tmp.log"
+    args.write_log(tmp_log_file)
+
+    assert tmp_log_file.is_file()
