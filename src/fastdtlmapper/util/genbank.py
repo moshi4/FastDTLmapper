@@ -19,11 +19,10 @@ class UtilGenbank:
     @property
     def is_valid_format(self) -> bool:
         """Check genbank format file or not"""
-        try:
-            SeqIO.parse(self.genbank_file, "genbank")
-        except Exception:
+        if len(list(SeqIO.parse(self.genbank_file, "genbank"))) == 0:
             return False
-        return True
+        else:
+            return True
 
     def convert_cds_fasta(
         self, fasta_outfile: Union[str, Path], seqtype: str, id_prefix: str = "GENE"

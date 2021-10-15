@@ -1,0 +1,18 @@
+[brn]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+[hgt]: outsp1-outsp2 --> insp3
+[spc]: outsp1-outsp2
+[cur]: outsp2
+[cur]: outsp1
+[dup]: insp3
+[cur]: insp3
+[cur]: insp3
+[spc]: insp1-insp2-insp3-insp4-insp5
+[spc]: insp1-insp2
+[cur]: insp2
+[cur]: insp1
+[spc]: insp3-insp4-insp5
+[spc]: insp4-insp5
+[los]: insp5
+[cur]: insp4
+[cur]: insp3

@@ -11,6 +11,24 @@ from fastdtlmapper.angst.model import NodeEvent
 class UtilTree:
     """Tree Utility Class"""
 
+    tree_file: Union[str, Path]
+
+    def is_valid_newick_format(self) -> bool:
+        """Check newick format or not"""
+        try:
+            tree: Tree = Phylo.read(self.tree_file, "newick")
+            tree_node_num = len(list(tree.find_clades()))
+        except ValueError:
+            return False
+        return False if tree_node_num == 1 else True
+
+    def is_rooted_tree(self) -> bool:
+        """Check rooted tree or not"""
+        if not self.is_valid_newick_format():
+            return False
+        tree: Tree = Phylo.read(self.tree_file, "newick")
+        return True if tree.root.is_bifurcating() else False
+
     @staticmethod
     def add_internal_node_id(
         nwk_tree_infile: Union[str, Path],
