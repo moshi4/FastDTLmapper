@@ -1,0 +1,46 @@
+leaf insp3_GENE000634:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[hgt]: outsp1-outsp2 --> insp3
+	[dup]: insp3
+	[cur]: insp3
+
+leaf insp3_GENE000063:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[hgt]: outsp1-outsp2 --> insp3
+	[dup]: insp3
+	[cur]: insp3
+
+leaf outsp2_GENE000671:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[spc]: outsp1-outsp2
+	[cur]: outsp2
+
+leaf outsp1_GENE000488:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[spc]: outsp1-outsp2
+	[cur]: outsp1
+
+leaf insp2_GENE000305:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[spc]: insp1-insp2-insp3-insp4-insp5
+	[spc]: insp1-insp2
+	[cur]: insp2
+
+leaf insp1_GENE000404:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[spc]: insp1-insp2-insp3-insp4-insp5
+	[spc]: insp1-insp2
+	[cur]: insp1
+
+leaf insp4_GENE000644:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[spc]: insp1-insp2-insp3-insp4-insp5
+	[spc]: insp3-insp4-insp5
+	[spc]: insp4-insp5
+	[cur]: insp4
+
+leaf insp3_GENE000633:
+	[spc]: outsp1-outsp2-insp1-insp2-insp3-insp4-insp5
+	[spc]: insp1-insp2-insp3-insp4-insp5
+	[spc]: insp3-insp4-insp5
+	[cur]: insp3
