@@ -93,7 +93,9 @@ Following explanation of timetree is taken from [AnGST manual](<https://github.c
     ├── 00_user_data/  -- User input data
     │   ├── fasta/     -- Formatted fasta files
     │   └── tree/      -- Formatted newick species tree files
+    │
     ├── 01_orthofinder/  -- OrthoFinder raw output results
+    │
     ├── 02_dtl_reconciliation/  -- Each OG(Ortholog Group) DTL reconciliation result
     │   ├── OG0000000/
     │   │   ├── OG0000000.fa                 -- OG fasta file
@@ -103,16 +105,19 @@ Following explanation of timetree is taken from [AnGST manual](<https://github.c
     │   │   ├── OG0000000_gain_loss_map.nwk  -- OG Gain-Loss event mapped tree file
     │   │   ├── angst/                       -- AnGST DTL reconciliation result
     │   │   └── iqtree/                      -- IQ-TREE gene tree reconstruction result
+    │   │
     │   ├── OG0000001/
     │   . 
     │   . 
     │   └── OGXXXXXXX/
+    │
     ├── 03_aggregate_map_result/  -- Genome-wide DTL reconciliation aggregated and mapped results
     │   ├── all_dtl_map.nwk              -- Genome-wide DTL event mapped tree file
     │   ├── all_gain_loss_map.nwk        -- Genome-wide Gain-Loss event mapped tree file
     │   ├── all_og_node_event.tsv        -- All OG DTL event record file
     │   ├── all_transfer_gene_count.tsv  -- All transfer(HGT) gene count file
     │   └── all_transfer_gene_list.tsv   -- All transfer(HGT) gene list file
+    │
     └── log/
         ├── parallel_cmds/ -- Parallel run command log results
         └── run_config.log -- Program run config log file
