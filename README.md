@@ -17,11 +17,11 @@
 Gene gain/loss is considered to be one of the most important evolutionary processes
 driving adaptive evolution, but it remains largely unexplored.
 Therefore, to investigate the relationship between gene gain/loss and adaptive evolution
-in the evolutionary process of organisms, we developed a software pipeline **FastDTLmapper**
-which automatically estimates genome-wide gene gain/loss.  
-FastDTLmapper takes the species phylogenetic tree and genomic CDS as input and
-performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
-DTL reconciliation of the species phylogenetic tree and each gene phylogenetic tree.  
+in the evolutionary process of organisms, I developed a software pipeline **FastDTLmapper**
+which automatically estimates and maps genome-wide gene gain/loss.  
+FastDTLmapper takes two inputs, 1. Species tree (Newick format) 2. Genomic CDSs (Fasta|Genbank format), 
+and performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
+DTL reconciliation of species tree and gene trees.  
 
 ## Install
 
