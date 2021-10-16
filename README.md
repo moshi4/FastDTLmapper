@@ -4,6 +4,9 @@
 ![OS](https://img.shields.io/badge/OS-Linux-steelblue)
 ![License](https://img.shields.io/badge/License-GPL3.0-steelblue)  
 
+![CI workflow](https://github.com/moshi4/FastDTLmapper/actions/workflows/CI.yml/badge.svg)
+[![codecov](https://codecov.io/gh/moshi4/FastDTLmapper/branch/main/graph/badge.svg?token=ZJ8D747JUY)](https://codecov.io/gh/moshi4/FastDTLmapper)
+
 ## Table of contents
 
 - [Overview](#overview)
@@ -19,7 +22,7 @@ driving adaptive evolution, but it remains largely unexplored.
 Therefore, to investigate the relationship between gene gain/loss and adaptive evolution
 in the evolutionary process of organisms, I developed a software pipeline **FastDTLmapper**
 which automatically estimates and maps genome-wide gene gain/loss.  
-FastDTLmapper takes two inputs, 1. Species tree (Newick format) 2. Genomic CDSs (Fasta|Genbank format), 
+FastDTLmapper takes two inputs, 1. Species tree (Newick format) 2. Genomic CDSs (Fasta|Genbank format),
 and performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
 DTL reconciliation of species tree and gene trees.  
 
