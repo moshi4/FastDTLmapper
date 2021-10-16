@@ -108,14 +108,3 @@ def test_get_parallel_cmd(args: Args, tmp_path: Path):
         + "> /dev/null "
     )
     assert cmd == expected_cmd and parallel_cmds_file.is_file()
-
-
-def test_run_parallel_cmd(args: Args, tmp_path: Path):
-    """test run_parallel_cmd"""
-    cmd_list = ["echo 1", "echo 2", "echo 3"]
-    testdir = tmp_path / "test"
-    testdir.mkdir()
-    parallel_cmds_file = testdir / "parallel_cmds.txt"
-    parallel_log_file = testdir / "parallel_log.csv"
-    Cmd(args).run_parallel_cmd(cmd_list, parallel_cmds_file, parallel_log_file)
-    assert not parallel_cmds_file.is_file() and parallel_log_file.is_file()
