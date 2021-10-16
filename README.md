@@ -8,41 +8,53 @@
 
 - [Overview](#overview)
 - [Install](#install)
-- [Method Summary](#method-summary)
+- [Pipeline Summary](#pipeline-summary)
 - [Command Usage](#command-usage)
-- [Output Summary](#output-summary)
+- [Output Contents](#output-contents)
 
 ## Overview
 
-**FastDTLmapper** can fastly map genome-wide DTL(Duplication-Transfer-Loss) event  
-from "Rooted species tree" and "Target species fasta files"
+Gene gain/loss is considered to be one of the most important evolutionary processes
+driving adaptive evolution, but it remains largely unexplored.
+Therefore, to investigate the relationship between gene gain/loss and adaptive evolution
+in the evolutionary process of organisms, we developed a software pipeline **FastDTLmapper**
+which automatically estimates genome-wide gene gain/loss.  
+FastDTLmapper takes the species phylogenetic tree and genomic CDS as input and
+performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
+DTL reconciliation of the species phylogenetic tree and each gene phylogenetic tree.  
 
 ## Install
 
 FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux**.  
 
-~~Install with pip:~~
+Install with pip:
 
-~~pip install fastdtlmapper~~
+    pip install fastdtlmapper
 
 ### Dependencies
 
 All of the following dependencies are packaged in **src/fastdtlmapper/bin** directory.  
 
 - [OrthoFinder](https://github.com/davidemms/OrthoFinder)  
+  Orthology inference tool
 - [mafft](https://mafft.cbrc.jp/alignment/software/)  
-- [trimal](http://trimal.cgenomics.org/)
-- [IQ-TREE](http://www.iqtree.org/)
-- [AnGST](https://github.com/almlab/angst)
-- [parallel](https://www.gnu.org/software/parallel/)
+  Sequences alignment tool
+- [trimal](http://trimal.cgenomics.org/)  
+  Alignment sequences trim tool
+- [IQ-TREE](http://www.iqtree.org/)  
+  Phylogenetic tree reconstruction tool
+- [AnGST](https://github.com/almlab/angst)  
+  DTL reconciliation tool (Requires Python 2.X to run)
+- [parallel](https://www.gnu.org/software/parallel/)  
+  Job parallelization tool (Requires Perl to run)
 
-## Method Summary
+## Pipeline Summary
 
 1. Grouping ortholog sequences using OrthoFinder
 2. Align each OG(Ortholog Group) sequences using mafft
 3. Trim each OG alignment using trimal
 4. Reconstruct each OG gene tree using IQ-TREE
-5. **Species tree** & **each OG gene tree** DTL reconciliation using AnGST
+5. Species tree & each OG gene tree DTL reconciliation using AnGST
 6. Aggregate and map genome-wide DTL reconciliation result
 
 ## Command Usage
@@ -65,29 +77,35 @@ All of the following dependencies are packaged in **src/fastdtlmapper/bin** dire
     --timetree           Use species tree as timetree (Default: off)
     --rseed              Number of random seed (Default: 0)
 
-**--timetree** enable AnGST timetree option  
-Following explanation of timetree is taken from [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>).
-> If the branch lengths on the provided species tree represent times,  
-> AnGST can restrict the set of possible inferred gene transfers to  
+> **Input Limitation**  
+>
+>- fasta or genbank files (-i|--indir option)  
+>  Filename cannot contain following character '_', '-', '|'
+>- species tree file (-t|--tree option)  
+>  Filename(fasta or genbank) & species name in tree must be match  
+
+**--timetree** enable AnGST timetree option below (See [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>) for details).  
+> If the branch lengths on the provided species tree represent times,
+> AnGST can restrict the set of possible inferred gene transfers to
 > only those between contemporaneous lineages  
 
 ### Example Command
 
     FastDTLmapper -i ./example/fasta/ -t ./example/species_tree.nwk -o ./fastdtlmapper_result
 
-## Output Summary
+## Output Contents
 
-### Output Top Directory Contents
+### Output Top Directory
 
 | Top directory           | Contents                                                     |
 | ----------------------- | ------------------------------------------------------------ |
 | 00_user_data            | Formatted user input fasta and tree files                    |
 | 01_orthofinder          | OrthoFinder raw output results                               |
 | 02_dtl_reconciliation   | Each OG(Ortholog Group) DTL reconciliation result            |
-| 03_aggregate_map_dtl    | Genome-wide DTL reconciliation aggregated and mapped results |
+| 03_aggregate_map_result | Genome-wide DTL reconciliation aggregated and mapped results |
 | log                     | Config log and command log files                                 |
 
-### Output Directory Structure & Contents
+### Output Directory Structure & Files
 
     .
     ├── 00_user_data/  -- User input data
@@ -115,8 +133,8 @@ Following explanation of timetree is taken from [AnGST manual](<https://github.c
     │   ├── all_dtl_map.nwk              -- Genome-wide DTL event mapped tree file
     │   ├── all_gain_loss_map.nwk        -- Genome-wide Gain-Loss event mapped tree file
     │   ├── all_og_node_event.tsv        -- All OG DTL event record file
-    │   ├── all_transfer_gene_count.tsv  -- All transfer(HGT) gene count file
-    │   └── all_transfer_gene_list.tsv   -- All transfer(HGT) gene list file
+    │   ├── all_transfer_gene_count.tsv  -- All transfer gene count file
+    │   └── all_transfer_gene_list.tsv   -- All transfer gene list file
     │
     └── log/
         ├── parallel_cmds/ -- Parallel run command log results
