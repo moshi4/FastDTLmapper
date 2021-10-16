@@ -1,9 +1,9 @@
-# FastDTLmapper: Fast genome-wide DTL event mapper  
+# (Under Construction) FastDTLmapper: Fast genome-wide DTL event mapper  
 
 ![Python3](https://img.shields.io/badge/Language-Python_3.7_|_3.8_|_3.9-steelblue)
 ![OS](https://img.shields.io/badge/OS-Linux-steelblue)
-![License](https://img.shields.io/badge/License-GPL3.0-steelblue)  
-
+![License](https://img.shields.io/badge/License-GPL3.0-steelblue)
+[![Latest PyPI version](https://img.shields.io/pypi/v/fastdtlmapper.svg)](https://pypi.python.org/pypi/fastdtlmapper)  
 ![CI workflow](https://github.com/moshi4/FastDTLmapper/actions/workflows/CI.yml/badge.svg)
 [![codecov](https://codecov.io/gh/moshi4/FastDTLmapper/branch/main/graph/badge.svg?token=ZJ8D747JUY)](https://codecov.io/gh/moshi4/FastDTLmapper)
 
@@ -80,14 +80,16 @@ All of the following dependencies are packaged in **src/fastdtlmapper/bin** dire
     --timetree           Use species tree as timetree (Default: off)
     --rseed              Number of random seed (Default: 0)
 
-> **Input Limitation**  
->
->- fasta or genbank files (-i|--indir option)  
->  Filename cannot contain following character '_', '-', '|'
->- species tree file (-t|--tree option)  
->  Filename(fasta or genbank) & species name in tree must be match  
+#### Input Limitation
 
-**--timetree** enable AnGST timetree option below (See [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>) for details).  
+- fasta or genbank files (--indir option)  
+  Following characters cannot be included in file name '_', '-', '|'
+- species tree file (--tree option)  
+  Species name in species tree must match fasta or genbank file name
+
+#### Timetree Option
+
+--timetree enable AnGST timetree option below (See [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>) for details).  
 > If the branch lengths on the provided species tree represent times,
 > AnGST can restrict the set of possible inferred gene transfers to
 > only those between contemporaneous lineages  
