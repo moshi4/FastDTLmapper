@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "FastDTLmapper"
-version = "0.1.0"
+version = "0.0.0"
 description = "Fast genome-wide DTL(Duplication-Transfer-Loss) event mapping tool"
 authors = ["moshi"]
 license = "GPL-3.0-only"
@@ -19,6 +19,9 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
+
+[tool.poetry-dynamic-versioning]
+enable = true
 
 [tool.poetry.scripts]
 FastDTLmapper = "fastdtlmapper.scripts.FastDTLmapper:main"
