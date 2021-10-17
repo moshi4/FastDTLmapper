@@ -28,11 +28,15 @@ DTL reconciliation of species tree and gene trees.
 
 ## Install
 
-FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux**.  
+FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux** (Tested on Ubuntu20.04).  
 
-Install with pip:
+Install PyPI stable version with pip:
 
     pip install fastdtlmapper
+
+Install latest development version with pip:
+
+    pip install git+git://github.com/moshi4/FastDTLmapper.git
 
 ### Dependencies
 
@@ -83,7 +87,7 @@ All of the following dependencies are packaged in **src/fastdtlmapper/bin** dire
 #### Input Limitation
 
 - fasta or genbank files (--indir option)  
-  Following characters cannot be included in file name '_', '-', '|'
+  Following characters cannot be included in file name '_', '-', '|', '.'
 - species tree file (--tree option)  
   Species name in species tree must match fasta or genbank file name
 
