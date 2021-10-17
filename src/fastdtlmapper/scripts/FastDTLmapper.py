@@ -4,7 +4,7 @@ import shutil
 import subprocess as sp
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastdtlmapper.angst import AngstEventMap, AngstTransferGene, NodeEvent
 from fastdtlmapper.args import Args, get_args
@@ -16,12 +16,13 @@ from fastdtlmapper.setup_binpath import SetupBinpath
 from fastdtlmapper.util import UtilFasta, UtilGenbank, UtilTree
 
 
-def main():
+def main(args: Optional[Args] = None):
     """Main function"""
     # Get configs (arguments, output_path, command)
-    args = get_args()
+    if args is None:
+        args = get_args()
     outpath = OutPath(args.outdir)
-    cmd = Cmd()
+    cmd = Cmd(args)
 
     # Setup binary path
     root_binpath = Path(__file__).parent.parent / "bin"
