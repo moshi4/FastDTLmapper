@@ -21,7 +21,7 @@ class InputCheck:
         default_factory=lambda: [".gb", ".gbk", ".genbank"]
     )
     invalid_char_list: List[str] = field(
-        default_factory=lambda: ["'", '"', "-", "_", "|"]
+        default_factory=lambda: ["'", '"', "-", "_", "|", "."]
     )
 
     def __post_init__(self):
@@ -67,7 +67,7 @@ class InputCheck:
         invalid_filename_list = []
         for file in fasta_or_genbank_file_list:
             for invalid_char in self.invalid_char_list:
-                if file.name.count(invalid_char):
+                if file.stem.count(invalid_char):
                     invalid_filename_list.append(file.name)
         for invalid_filename in invalid_filename_list:
             print(f"ERROR: Invalid filename '{invalid_filename}' detected!!")
