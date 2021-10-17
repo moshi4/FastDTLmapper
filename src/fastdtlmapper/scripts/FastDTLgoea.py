@@ -1,98 +1,78 @@
 #!/usr/bin/env python3
-import argparse
 import csv
 import os
-import re
 import shutil
 import subprocess as sp
 from collections import defaultdict
 from pathlib import Path
-from typing import Tuple
+from typing import Optional
 
 import pandas as pd
 from fastdtlmapper.goea import GOEA, OgGoAssociation
+from fastdtlmapper.goea.args import Args, get_args
+from fastdtlmapper.out_path import OutPath
 
 
-def main():
+def main(args: Optional[Args] = None):
     """Run GOEA(GO Enrichment Analysis) for FastDTLmapper result"""
     # Get arguments
-    args = get_args()
-    indir = args.indir
-    plot_pvalue_thr = args.plot_pvalue_thr
-    plot_max_num = args.plot_max_num
-    plot_format = args.plot_format
-    plot_color = args.plot_color
-    use_adjusted_pvalue = args.adjusted_pvalue
-
-    # Output directory
-    outdir = indir / "04_functional_analysis"
-    go_annotation_dir = outdir / "go_annotation"
-    go_annotation_workdir = go_annotation_dir / "work"
-    go_enrichment_dir = outdir / "go_enrichment"
-    result_summary_dir = outdir / "result_summary"
-    result_summary_plot_dir = result_summary_dir / "significant_go_plot"
-    shutil.rmtree(go_enrichment_dir, ignore_errors=True)
-    shutil.rmtree(result_summary_dir, ignore_errors=True)
-    os.makedirs(go_annotation_dir, exist_ok=True)
-    os.makedirs(go_annotation_workdir, exist_ok=True)
-    os.makedirs(go_enrichment_dir, exist_ok=True)
-    os.makedirs(result_summary_plot_dir, exist_ok=True)
+    if args is None:
+        args = get_args()
+    outpath = OutPath(args.indir, goea_mode=True)
 
     # GO annotation using interproscan
-    fasta_dir = indir / "00_user_data" / "fasta"
-    if not fasta_dir.exists():
-        err_msg = f"Input fasta directory '{fasta_dir}' not found!!\n"
-        err_msg += "Please specify FastDTLmapper result directory as input directory."
-        raise ValueError(err_msg)
-
-    for fasta_file in fasta_dir.glob("*.fa"):
+    for fasta_file in outpath.user_fasta_dir.glob("*.fa"):
         species_name = fasta_file.stem
-        annotation_outfile = go_annotation_dir / (species_name + "_annotation.tsv")
+        annotation_outfile = outpath.go_annotation_dir / (
+            species_name + "_annotation.tsv"
+        )
         if not annotation_outfile.exists():
-            run_interproscan(fasta_file, annotation_outfile, go_annotation_workdir)
-    shutil.rmtree(go_annotation_workdir)
+            run_interproscan(
+                fasta_file, annotation_outfile, outpath.go_annotation_workdir
+            )
+    shutil.rmtree(outpath.go_annotation_workdir)
 
     # Make OG & GO association file
-    og_gene_file = indir / "01_orthofinder" / "Orthogroups" / "Orthogroups.txt"
-    annotation_file_list = go_annotation_dir.glob("*_annotation.tsv")
-    og2go_association_file = go_enrichment_dir / "og2go_association.txt"
-    og_go_association = OgGoAssociation(og_gene_file, annotation_file_list)
-    og_go_association.write_og2go_association(og2go_association_file)
+    annotation_file_list = list(outpath.go_annotation_dir.glob("*_annotation.tsv"))
+    og_go_association = OgGoAssociation(outpath.og_gene_file, annotation_file_list)
+    og_go_association.write_og2go_association(outpath.og2go_association_file)
 
     # Make each node gain/loss GOEA resource files
-    all_og_node_event_file = indir / "03_aggregate_map_result" / "all_og_node_event.tsv"
-    make_node_goea_resource(all_og_node_event_file, go_enrichment_dir, "gain")
-    make_node_goea_resource(all_og_node_event_file, go_enrichment_dir, "loss")
+    make_node_goea_resource(
+        outpath.all_node_event_file, outpath.go_enrichment_dir, "gain"
+    )
+    make_node_goea_resource(
+        outpath.all_node_event_file, outpath.go_enrichment_dir, "loss"
+    )
 
     # Run GOEA for each node gain/loss genes
-    obo_file = outdir / "go-basic.obo"
-    GOEA.download_obo(obo_file)
+    GOEA.download_obo(outpath.obo_file)
     run_goatools_goea(
-        go_enrichment_dir,
-        og2go_association_file,
-        obo_file,
-        plot_pvalue_thr,
-        plot_max_num,
-        plot_format,
-        plot_color,
-        use_adjusted_pvalue,
+        outpath.go_enrichment_dir,
+        outpath.og2go_association_file,
+        outpath.obo_file,
+        args.plot_pvalue_thr,
+        args.plot_max_num,
+        args.plot_format,
+        args.plot_color,
+        args.use_adjusted_pvalue,
     )
 
     # Generate result summary report
     significant_go_df = pd.DataFrame()
     significant_go_count_info = ""
-    for goea_result_file in sorted(go_enrichment_dir.glob("**/*.tsv")):
+    for goea_result_file in sorted(outpath.go_enrichment_dir.glob("**/*.tsv")):
         filename = goea_result_file.with_suffix("").name
         node_id, gain_or_loss, go_category = filename.split("_")
         # Extract only significant data
-        over_df, under_df = extract_significant_goea_result(
-            goea_result_file, plot_pvalue_thr, use_adjusted_pvalue
+        over_df, under_df = GOEA.extract_significant_goea_result(
+            goea_result_file, args.plot_pvalue_thr, args.use_adjusted_pvalue
         )
         # Format dataframe
-        over_df = format_significant_go_dataframe(
+        over_df = GOEA.format_significant_goea_dataframe(
             over_df, node_id, gain_or_loss, go_category
         )
-        under_df = format_significant_go_dataframe(
+        under_df = GOEA.format_significant_goea_dataframe(
             under_df, node_id, gain_or_loss, go_category
         )
         # Get significant GO count stats
@@ -109,12 +89,10 @@ def main():
             significant_go_df = pd.concat([significant_go_df, over_df, under_df])
 
     # Write all significant GO dataframe
-    significant_go_list_file = result_summary_dir / "significant_go_list.tsv"
-    significant_go_df.to_csv(significant_go_list_file, sep="\t", index=False)
+    significant_go_df.to_csv(outpath.significant_go_list_file, sep="\t", index=False)
 
     # Write significat GO count stats
-    significant_go_count_file = result_summary_dir / "significant_go_count.tsv"
-    with open(significant_go_count_file, "w") as f:
+    with open(outpath.significant_go_count_file, "w") as f:
         header = (
             "NODE_ID\tGAIN/LOSS\tGO_CATEGORY\tOVER/UNDER\t"
             + "SIGNIFICANT_GO_COUNT\tSIGNIFICANT_GO_LIST\n"
@@ -123,83 +101,8 @@ def main():
         f.write(significant_go_count_info)
 
     # Copy all plot file in one directory
-    for plot_file in go_enrichment_dir.glob(f"**/*.{plot_format}"):
-        shutil.copy(plot_file, result_summary_plot_dir)
-
-
-def get_args() -> argparse.Namespace:
-    """Get argument values
-
-    Returns:
-        argparse.Namespace: argument values
-    """
-    parser = argparse.ArgumentParser(
-        description="Gain/Loss genes GOEA(GO Enrichment Analysis) tool"
-    )
-    parser.add_argument(
-        "-i",
-        "--indir",
-        required=True,
-        type=Path,
-        help="FastDTLmapper result directory",
-        metavar="IN",
-    )
-    default_plot_pvalue_thr = 0.05
-    parser.add_argument(
-        "--plot_pvalue_thr",
-        type=float,
-        default=default_plot_pvalue_thr,
-        help=f"Plot GOterm pvalue threshold (Default: {default_plot_pvalue_thr})",
-        metavar="",
-    )
-    default_max_plot_num = 10
-    parser.add_argument(
-        "--plot_max_num",
-        type=int,
-        default=default_max_plot_num,
-        help=f"Plot GOterm max number (Default: {default_max_plot_num})",
-        metavar="",
-    )
-    default_plot_format = "png"
-    available_format = ["png", "svg", "jpg", "pdf"]
-    parser.add_argument(
-        "--plot_format",
-        type=str,
-        default=default_plot_format,
-        choices=available_format,
-        help=f"Plot file format [{'|'.join(available_format)}] "
-        + f"(Default: '{default_plot_format}')",
-        metavar="",
-    )
-    parser.add_argument(
-        "--plot_color",
-        type=str,
-        default="",
-        help="Plot specified hexcolor [e.g. '1affdb'] "
-        + "(Default: yellow to red gradient color)",
-        metavar="",
-    )
-    parser.add_argument(
-        "--adjusted_pvalue",
-        help="Use BH adjusted pvalue for plot threshold",
-        action="store_true",
-    )
-
-    args = parser.parse_args()
-
-    # Plot hexcolor check
-    def is_valid_hexcolor(hexcolor: str) -> bool:
-        search_result = re.search(r"^(?:[0-9a-fA-F]{3}){1,2}$", hexcolor)
-        return False if search_result is None else True
-
-    if args.plot_color and not is_valid_hexcolor(args.plot_color):
-        parser.error(
-            f"argument --plot_color: invalid hexcolor code '{args.plot_color}'."
-        )
-    else:
-        args.plot_color = "#" + args.plot_color if args.plot_color else ""
-
-    return args
+    for plot_file in outpath.go_enrichment_dir.glob(f"**/*.{args.plot_format}"):
+        shutil.copy(plot_file, outpath.result_summary_plot_dir)
 
 
 def run_interproscan(
@@ -213,14 +116,13 @@ def run_interproscan(
         go_annotation_workdir (Path): InterProScan working directory
     """
     ipr_bin = "interproscan.sh"
-    if not shutil.which(ipr_bin):
-        err = f"'{ipr_bin}' not found. Please confirm InterProScan installation!!"
-        raise RuntimeError(err)
-
     cmd = (
         f"{ipr_bin} -i {fasta_file} -o {annotation_outfile} -f tsv "
         + f"-T {go_annotation_workdir} --goterms"
     )
+    if not shutil.which(ipr_bin):
+        print(f"'{ipr_bin}' not found. Please confirm InterProScan installation!!")
+        exit(1)
     sp.run(cmd, shell=True)
 
 
@@ -325,83 +227,6 @@ def run_goatools_goea(
         # Plot GOEA significant GOterms
         for goea_result_file in goea_result_file_list:
             goea.plot(goea_result_file, goea_result_file.with_suffix(""))
-
-
-def extract_significant_goea_result(
-    goea_result_file: Path,
-    pvalue_thr: float,
-    use_adjusted_pvalue: bool,
-    min_depth: int = 2,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Extract over and under significant goea result
-
-    Args:
-        goea_result_file (Path): GOEA result file
-        pvalue_thr (float): Pvalue threshold for extract
-        use_adjusted_pvalue (bool): Use BH adjusted pvalue or not
-        min_depth (int, optional): Minimum depth for extract. Defaults to 2.
-
-    Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: over/under extract dataframes
-    """
-    df = pd.read_table(goea_result_file)
-    pvalue_column_name = "p_fdr_bh" if use_adjusted_pvalue else "p_uncorrected"
-    over_df = df[
-        (df["enrichment"] == "e")
-        & (df[pvalue_column_name] < pvalue_thr)
-        & (df["depth"] >= min_depth)
-    ]
-    under_df = df[
-        (df["enrichment"] == "p")
-        & (df[pvalue_column_name] < pvalue_thr)
-        & (df["depth"] >= min_depth)
-    ]
-    return (over_df, under_df)
-
-
-def format_significant_go_dataframe(
-    goea_result_df: pd.DataFrame,
-    node_id: str,
-    gain_or_loss: str,
-    go_category: str,
-) -> pd.DataFrame:
-    """Format significant GOterm dataframe for output
-
-    Args:
-        goea_result_df (pd.DataFrame): GOEA result dataframe
-        node_id (str): Node id
-        gain_or_loss (str): "gain" or "loss"
-        go_category (str): "BP" or "MF" or "CC"
-
-    Returns:
-        pd.DataFrame: Formatted GOEA result dataframe
-    """
-    # Rename columns
-    rename_list = [
-        "GO",
-        "GO_CATEGORY",
-        "OVER/UNDER",
-        "GO_NAME",
-        "RATIO_IN_STUDY",
-        "RATIO_IN_POP",
-        "PVALUE",
-        "DEPTH",
-        "STUDY_COUNT",
-        "BH_ADJUSTED_PVALUE",
-        "STUDY_ITEMS",
-    ]
-    rename_dict = {b: a for b, a in zip(goea_result_df.columns, rename_list)}
-    goea_result_df = goea_result_df.rename(columns=rename_dict)
-    # Add columns
-    goea_result_df["NODE_ID"] = node_id
-    goea_result_df["GAIN/LOSS"] = gain_or_loss
-    goea_result_df["GO_CATEGORY"] = go_category
-    # Replace OVER/UNDER value ("e" -> "over", "p" -> "under")
-    goea_result_df = goea_result_df.replace({"OVER/UNDER": {"e": "over", "p": "under"}})
-    # Return reorder columns dataframe
-    return goea_result_df[
-        ["NODE_ID", "GAIN/LOSS", "GO_CATEGORY", "OVER/UNDER", "GO", *rename_list[3:]]
-    ]
 
 
 if __name__ == "__main__":
