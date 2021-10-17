@@ -3,7 +3,8 @@
 ![Python3](https://img.shields.io/badge/Language-Python_3.7_|_3.8_|_3.9-steelblue)
 ![OS](https://img.shields.io/badge/OS-Linux-steelblue)
 ![License](https://img.shields.io/badge/License-GPL3.0-steelblue)
-[![Latest PyPI version](https://img.shields.io/pypi/v/fastdtlmapper.svg)](https://pypi.python.org/pypi/fastdtlmapper)  
+[![Latest PyPI version](https://img.shields.io/pypi/v/fastdtlmapper.svg)](https://pypi.python.org/pypi/fastdtlmapper)
+[![Downloads](https://static.pepy.tech/personalized-badge/fastdtlmapper?period=month&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/fastdtlmapper)  
 ![CI workflow](https://github.com/moshi4/FastDTLmapper/actions/workflows/CI.yml/badge.svg)
 [![codecov](https://codecov.io/gh/moshi4/FastDTLmapper/branch/main/graph/badge.svg?token=ZJ8D747JUY)](https://codecov.io/gh/moshi4/FastDTLmapper)
 
@@ -25,6 +26,11 @@ which automatically estimates and maps genome-wide gene gain/loss.
 FastDTLmapper takes two inputs, 1. Species tree (Newick format) 2. Genomic CDSs (Fasta|Genbank format),
 and performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
 DTL reconciliation of species tree and gene trees.  
+
+![demo_all_gain_loss_map.png](https://github.com/moshi4/FastDTLmapper/wiki/images/demo_all_gain_loss_map.png)  
+**Fig. Genome-wide gain/loss map result example (all_gain_loss_map.png)**  
+Each nodes gain/loss data is mapped in following format (*NodeID | GeneCount [gain=GainCount los=LossCount]*)  
+Map data is embeded in newick format bootstrap value field and user can visualize using [SeaView](http://doua.prabi.fr/software/seaview).
 
 ## Install
 
@@ -93,6 +99,7 @@ All of the following dependencies are packaged in **src/fastdtlmapper/bin** dire
 
 #### Timetree Option
 
+If user set this option, input species tree must be ultrametric tree.  
 --timetree enable AnGST timetree option below (See [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>) for details).  
 > If the branch lengths on the provided species tree represent times,
 > AnGST can restrict the set of possible inferred gene transfers to
