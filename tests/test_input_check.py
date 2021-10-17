@@ -24,6 +24,7 @@ def test_is_valid_filename_ng():
         Path("species_test1.fa"),
         Path("species-test2.gbk"),
         Path("species|test3.faa"),
+        Path("species.test4.gb"),
     ]
     with pytest.raises(SystemExit) as e:
         input_check._is_valid_filename(invalid_filename_list)
