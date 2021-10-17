@@ -91,4 +91,4 @@ class Cmd:
             cmd_list, parallel_cmds_file, parallel_log_file
         )
         sp.run(parallel_cmd, shell=True)
-        Path(parallel_cmds_file).unlink(missing_ok=True)
+        Path(parallel_cmds_file).unlink()
