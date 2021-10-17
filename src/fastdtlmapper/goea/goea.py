@@ -3,7 +3,7 @@ import os
 import subprocess as sp
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 from urllib import request
 
 import numpy as np
@@ -249,3 +249,86 @@ class GOEA:
 
         if not obo_outfile.is_file():
             raise FileNotFoundError(f"'{obo_outfile}' not found. Download failure!!")
+
+    @staticmethod
+    def extract_significant_goea_result(
+        goea_result_file: Path,
+        pvalue_thr: float,
+        use_adjusted_pvalue: bool,
+        min_depth: int = 2,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Extract over and under significant goea result
+
+        Args:
+            goea_result_file (Path): GOEA result file
+            pvalue_thr (float): Pvalue threshold for extract
+            use_adjusted_pvalue (bool): Use BH adjusted pvalue or not
+            min_depth (int, optional): Minimum depth for extract. Defaults to 2.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame]: over/under extract dataframes
+        """
+        df = pd.read_table(goea_result_file)
+        pvalue_column_name = "p_fdr_bh" if use_adjusted_pvalue else "p_uncorrected"
+        over_df = df[
+            (df["enrichment"] == "e")
+            & (df[pvalue_column_name] < pvalue_thr)
+            & (df["depth"] >= min_depth)
+        ]
+        under_df = df[
+            (df["enrichment"] == "p")
+            & (df[pvalue_column_name] < pvalue_thr)
+            & (df["depth"] >= min_depth)
+        ]
+        return (over_df, under_df)
+
+    @staticmethod
+    def format_significant_goea_dataframe(
+        goea_result_df: pd.DataFrame,
+        node_id: str,
+        gain_or_loss: str,
+    ) -> pd.DataFrame:
+        """Format significant GOterm dataframe for output
+
+        Args:
+            goea_result_df (pd.DataFrame): GOEA result dataframe
+            node_id (str): Node id
+            gain_or_loss (str): "gain" or "loss"
+
+        Returns:
+            pd.DataFrame: Formatted GOEA result dataframe
+        """
+        # Rename columns
+        rename_list = [
+            "GO",
+            "GO_CATEGORY",
+            "OVER/UNDER",
+            "GO_NAME",
+            "RATIO_IN_STUDY",
+            "RATIO_IN_POP",
+            "PVALUE",
+            "DEPTH",
+            "STUDY_COUNT",
+            "BH_ADJUSTED_PVALUE",
+            "STUDY_ITEMS",
+        ]
+        rename_dict = {b: a for b, a in zip(goea_result_df.columns, rename_list)}
+        goea_result_df = goea_result_df.rename(columns=rename_dict)
+        # Add columns
+        goea_result_df["NODE_ID"] = node_id
+        goea_result_df["GAIN/LOSS"] = gain_or_loss
+        # Replace OVER/UNDER value ("e" -> "over", "p" -> "under")
+        goea_result_df = goea_result_df.replace(
+            {"OVER/UNDER": {"e": "over", "p": "under"}}
+        )
+        # Return reorder columns dataframe
+        return goea_result_df[
+            [
+                "NODE_ID",
+                "GAIN/LOSS",
+                "GO_CATEGORY",
+                "OVER/UNDER",
+                "GO",
+                *rename_list[3:],
+            ]
+        ]
