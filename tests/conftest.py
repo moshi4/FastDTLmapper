@@ -55,3 +55,15 @@ def species_tree_nodeid_file(data_dir: Path) -> Path:
 def angst_result_dir(data_dir: Path) -> Path:
     """AnGST output directory fixture"""
     return data_dir / "angst"
+
+
+@pytest.fixture(scope="session")
+def integration_fasta_indir(data_dir: Path) -> Path:
+    """FastDTLmapper integration fasta dir"""
+    return data_dir / "integration_test" / "fasta"
+
+
+@pytest.fixture(scope="session")
+def integration_species_tree_file(data_dir: Path) -> Path:
+    """FastDTLmapper integration species tree file"""
+    return data_dir / "integration_test" / "species_tree.nwk"
