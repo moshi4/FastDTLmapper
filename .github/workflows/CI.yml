@@ -30,6 +30,9 @@ jobs:
       - name: Install Dependencies
         run: poetry install -n
 
+      - name: Install GraphViz
+        run: sudo apt install -y graphviz
+
       - name: Run black format check
         run: poetry run black src tests --check --diff --verbose --exclude src/fastdtlmapper/bin
 
