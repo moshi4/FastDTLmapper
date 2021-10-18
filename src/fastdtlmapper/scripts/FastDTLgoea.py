@@ -69,11 +69,9 @@ def main(args: Optional[Args] = None):
             goea_result_file, args.plot_pvalue_thr, args.use_adjusted_pvalue
         )
         # Format dataframe
-        over_df = GOEA.format_significant_goea_dataframe(
-            over_df, node_id, gain_or_loss, go_category
-        )
+        over_df = GOEA.format_significant_goea_dataframe(over_df, node_id, gain_or_loss)
         under_df = GOEA.format_significant_goea_dataframe(
-            under_df, node_id, gain_or_loss, go_category
+            under_df, node_id, gain_or_loss
         )
         # Get significant GO count stats
         over_go_num, under_go_num = len(over_df), len(under_df)
