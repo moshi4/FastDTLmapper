@@ -25,7 +25,7 @@ class UtilGenbank:
             return True
 
     def convert_cds_fasta(
-        self, fasta_outfile: Union[str, Path], seqtype: str, id_prefix: str = "GENE"
+        self, fasta_outfile: Union[str, Path], seqtype: str, id_prefix: str
     ) -> None:
         """Convert genbank to CDS fasta file
 
@@ -42,16 +42,22 @@ class UtilGenbank:
                 qualifiers = cds_feature.qualifiers
                 protein_id = qualifiers.get("protein_id", ["NA"])[0]
                 product = qualifiers.get("product", ["NA"])[0]
+                # Delete invalid characters
+                invalid_char_list = ["'", '"', "(", ")", "[", "]", ":", ";", ","]
+                transtable = str.maketrans({char: "" for char in invalid_char_list})
+                protein_id = protein_id.translate(transtable)
 
                 if qualifiers.get("translation") is None:
                     continue
 
                 gene_idx += 1
+                seq_id = f"{id_prefix}_GENE{gene_idx:06d}"
+                if protein_id != "NA":
+                    seq_id += f"_{protein_id}"
+
                 if seqtype == "nucleotide":
-                    seq_id = f"{id_prefix}{gene_idx:06d}"
                     cds_seq = cds_feature.location.extract(record.seq)
                 elif seqtype == "protein":
-                    seq_id = f"{id_prefix}{gene_idx:06d} {protein_id}"
                     cds_seq = Seq(qualifiers.get("translation")[0])
                 else:
                     raise KeyError(f"seqtype '{seqtype}' is not 'nucleotide|protein'")

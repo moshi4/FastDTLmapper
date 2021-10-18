@@ -40,5 +40,5 @@ def test_uniq_species_name_list(fasta_file: Path):
 def test_add_serial_id(fasta_file: Path, tmp_path: Path):
     """test add_serial_id"""
     fasta_serial_id_outfile = tmp_path / "serial_id.fa"
-    UtilFasta(fasta_file).add_serial_id(fasta_serial_id_outfile)
+    UtilFasta(fasta_file).add_serial_id(fasta_serial_id_outfile, "prefix")
     assert fasta_serial_id_outfile.is_file()
