@@ -43,8 +43,8 @@ class UtilGenbank:
                 protein_id = qualifiers.get("protein_id", ["NA"])[0]
                 product = qualifiers.get("product", ["NA"])[0]
                 # Delete invalid characters
-                invalid_char_list = ["'", '"', "(", ")", "[", "]", ":", ";", ","]
-                transtable = str.maketrans({char: "" for char in invalid_char_list})
+                invalid_char_list = ["'", '"', "(", ")", "[", "]", ":", ";", "|", ","]
+                transtable = str.maketrans({char: "_" for char in invalid_char_list})
                 protein_id = protein_id.translate(transtable)
 
                 if qualifiers.get("translation") is None:

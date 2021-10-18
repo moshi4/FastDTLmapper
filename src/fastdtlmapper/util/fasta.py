@@ -65,8 +65,8 @@ class UtilFasta:
         fix_records = []
         for cnt, record in enumerate(SeqIO.parse(self.fasta_file, format="fasta"), 1):
             # Remove invalid characters
-            invalid_char_list = ["'", '"', "(", ")", "[", "]", ":", ";", ","]
-            transtable = str.maketrans({char: "" for char in invalid_char_list})
+            invalid_char_list = ["'", '"', "(", ")", "[", "]", ":", ";", "|", ","]
+            transtable = str.maketrans({char: "_" for char in invalid_char_list})
             record_id = str(record.id).translate(transtable)
             # Make unique serial id
             record.id = f"{id_prefix}_GENE{cnt:06d}_{record_id}"
