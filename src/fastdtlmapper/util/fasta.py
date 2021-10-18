@@ -38,7 +38,7 @@ class UtilFasta:
         """Get species_name & seq_num dict"""
         species_name2seq_num = defaultdict(int)
         for record in SeqIO.parse(self.fasta_file, "fasta"):
-            species_name = "_".join(record.id.split("_")[:-1])
+            species_name = record.id.split("_")[0]
             species_name2seq_num[species_name] += 1
         return species_name2seq_num
 
@@ -47,14 +47,14 @@ class UtilFasta:
         """Get fasta unique species name list"""
         species_name_list = []
         for record in SeqIO.parse(self.fasta_file, "fasta"):
-            species_name = "_".join(record.id.split("_")[:-1])
+            species_name = record.id.split("_")[0]
             species_name_list.append(species_name)
         return sorted(list(set(species_name_list)))
 
     def add_serial_id(
         self,
         fasta_outfile: Union[str, Path],
-        id_prefix: str = "GENE",
+        id_prefix: str,
     ) -> None:
         """Add fasta id prefix tag
 
@@ -64,8 +64,11 @@ class UtilFasta:
         """
         fix_records = []
         for cnt, record in enumerate(SeqIO.parse(self.fasta_file, format="fasta"), 1):
-            serial_id_tag = f"{id_prefix}{cnt:06d}"
-            record.id = f"{serial_id_tag} {record.id} "
-            record.description = f"{serial_id_tag} {record.description} "
+            # Remove invalid characters
+            invalid_char_list = ["'", '"', "(", ")", "[", "]", ":", ";", ","]
+            transtable = str.maketrans({char: "" for char in invalid_char_list})
+            record_id = str(record.id).translate(transtable)
+            # Make unique serial id
+            record.id = f"{id_prefix}_GENE{cnt:06d}_{record_id}"
             fix_records.append(record)
         SeqIO.write(fix_records, fasta_outfile, "fasta-2line")

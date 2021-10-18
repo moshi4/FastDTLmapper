@@ -69,12 +69,14 @@ def format_user_fasta(fasta_dir: Path, format_fasta_dir: Path) -> None:
     infiles = [f for f in fasta_dir.glob("*") if f.is_file()]
     for infile in infiles:
         fasta_outfile = format_fasta_dir / infile.with_suffix(".fa").name
-        filesymbol = infile.stem.replace("|", "_")
-        id_prefix = f"{filesymbol}_GENE"
+        species_name = infile.stem
         if infile.suffix in (".fa", ".faa", ".fasta"):
-            UtilFasta(infile).add_serial_id(fasta_outfile, id_prefix)
+            UtilFasta(infile).add_serial_id(fasta_outfile, species_name)
         elif infile.suffix in (".gb", ".gbk", ".genbank"):
-            UtilGenbank(infile).convert_cds_fasta(fasta_outfile, "protein", id_prefix)
+
+            UtilGenbank(infile).convert_cds_fasta(
+                fasta_outfile, "protein", species_name
+            )
 
 
 def orthofinder_run(outpath: OutPath, cmd: Cmd) -> None:
@@ -316,7 +318,7 @@ def output_aggregate_transfer_results(outpath: OutPath) -> None:
     ):
         all_gene_num = len(all_gene_id_list)
         all_trn_count_info += (
-            f"{trn_fromto}\t{all_gene_num}\t{'|'.join(all_gene_id_list)}\n"
+            f"{trn_fromto}\t{all_gene_num}\t{','.join(all_gene_id_list)}\n"
         )
     with open(outpath.all_trn_count_file, "w") as f:
         header = (
