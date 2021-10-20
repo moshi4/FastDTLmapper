@@ -30,15 +30,16 @@ jobs:
       - name: Install Dependencies
         run: poetry install -n
 
-      - name: Install GraphViz
+      - name: Update & Upgrade
         run: |
           sudo apt update -y
-          sudo apt install -y graphviz
+          sudo apt upgrade -y
+
+      - name: Install GraphViz
+        run: sudo apt install -y graphviz
 
       - name: Install PyQt5 (required ete3 tree drawer)
-        run: |
-          sudo apt update -y
-          sudo apt install -y python3-pyqt5 python3-pyqt5.qtopengl python3-numpy python3-lxml python3-six
+        run: sudo apt install -y python3-pyqt5 python3-pyqt5.qtopengl python3-numpy python3-lxml python3-six
 
       - name: Run black format check
         run: poetry run black src tests --check --diff --verbose --exclude src/fastdtlmapper/bin
