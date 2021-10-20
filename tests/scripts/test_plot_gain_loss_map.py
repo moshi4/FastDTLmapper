@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from fastdtlmapper.scripts.plot_gain_loss_map import Args, get_args, main
+from fastdtlmapper.scripts.plot_gain_loss_map import get_args, main
 
 
 def test_plot_gain_loss_map_default_param(
