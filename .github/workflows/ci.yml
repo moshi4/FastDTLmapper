@@ -27,9 +27,6 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
           echo "$HOME/.poetry/bin" >> $GITHUB_PATH
 
-      - name: Install Dependencies
-        run: poetry install -n
-
       - name: Update
         run: |
           sudo apt update -y
@@ -39,6 +36,9 @@ jobs:
 
       - name: Install PyQt5 (required ete3 tree drawer)
         run: sudo apt install -y python3-pyqt5 python3-pyqt5.qtopengl python3-numpy python3-lxml python3-six libqt5core5a qt5-style-plugins qt5ct qt5-default
+
+      - name: Install Dependencies
+        run: poetry install -n
 
       - name: Run black format check
         run: poetry run black src tests --check --diff --verbose --exclude src/fastdtlmapper/bin
