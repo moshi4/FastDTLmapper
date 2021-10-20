@@ -121,3 +121,14 @@ def goea_association_file(data_dir: Path) -> Path:
 def goea_result_file(data_dir: Path) -> Path:
     """GOEA goatools result file fixture"""
     return data_dir / "goea" / "goea_result.tsv"
+
+
+###########################################################
+# plot_gain_loss_map testdata fixture
+###########################################################
+
+
+@pytest.fixture(scope="session")
+def gain_loss_map_nwk_file(data_dir: Path) -> Path:
+    """gain loss map newick file fixture"""
+    return data_dir / "all_gain_loss_map.nwk"
