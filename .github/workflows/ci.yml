@@ -27,15 +27,13 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
           echo "$HOME/.poetry/bin" >> $GITHUB_PATH
 
-      - name: Update
+      # Install GraphViz for GOAtools GOterms plot
+      # Install Qt5 for ete3 tree plot
+      # Install Xvfb for ete3(Qt5) execution in headless server environment
+      - name: Install GraphViz, Qt5, Xvfb
         run: |
           sudo apt update -y
-
-      - name: Install GraphViz
-        run: sudo apt install -y graphviz
-
-      - name: Install PyQt5 (required ete3 tree drawer)
-        run: sudo apt install -y xvfb qt5-default
+          sudo apt install -y graphviz qt5-default xvfb
 
       - name: Install Dependencies
         run: poetry install -n
