@@ -35,10 +35,10 @@ jobs:
           sudo apt update -y
           sudo apt install -y graphviz
 
-      - name: Install PyQt5 opengl library (required ete3 tree drawer)
+      - name: Install PyQt5 (required ete3 tree drawer)
         run: |
           sudo apt update -y
-          sudo apt install -y python3-pyqt5.qtopengl
+          sudo apt install -y python3-pyqt5 python3-pyqt5.qtopengl
 
       - name: Run black format check
         run: poetry run black src tests --check --diff --verbose --exclude src/fastdtlmapper/bin
