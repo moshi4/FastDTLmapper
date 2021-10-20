@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/License-GPL3.0-steelblue)
 [![Latest PyPI version](https://img.shields.io/pypi/v/fastdtlmapper.svg)](https://pypi.python.org/pypi/fastdtlmapper)
 [![Downloads](https://static.pepy.tech/personalized-badge/fastdtlmapper?period=month&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/fastdtlmapper)  
-![CI workflow](https://github.com/moshi4/FastDTLmapper/actions/workflows/CI.yml/badge.svg)
+![CI workflow](https://github.com/moshi4/FastDTLmapper/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/moshi4/FastDTLmapper/branch/main/graph/badge.svg?token=ZJ8D747JUY)](https://codecov.io/gh/moshi4/FastDTLmapper)
 
 ## Table of contents
@@ -79,14 +79,14 @@ Following dependencies are packaged in **[src/fastdtlmapper/bin](https://github.
 
 ## Analysis Pipeline
 
-This is summary description. See [wiki]() for details.
-
 1. Grouping ortholog sequences using OrthoFinder
 2. Align each OG(Ortholog Group) sequences using mafft
 3. Trim each OG alignment using trimal
 4. Reconstruct each OG gene tree using IQ-TREE
 5. DTL reconciliation of species tree & each OG gene tree using AnGST
 6. Aggregate and map genome-wide DTL reconciliation result
+
+This is summary description. See [wiki](#overview) for details.
 
 ## Command Usage
 
@@ -182,7 +182,7 @@ FastDTLmapper subtool `plot_gain_loss_map` supports for plotting
 publication-ready gain/loss map figure as shown below.
 Users can plot easily and can output in any format they want by
 changing plotting parameter.
-See [wiki]() for details.
+See [wiki](#overview) for details.
 
 ![demo_plot_all_gain_loss_map.png](https://github.com/moshi4/FastDTLmapper/wiki/images/demo_plot_all_gain_loss_map.png)  
 **Fig. Gain/Loss map plot result example**
@@ -194,10 +194,10 @@ GOEA(GO Enrichment Analysis) in each node gain/loss genes.
 Each node gain/loss gene's significant GOterms are
 listed and plotted as shown below.
 This GOEA functional analysis is useful for getting glasp of genome-wide
-functional trends in genome-wide gain/loss genes. See [wiki]() for details.
+functional trends in gain/loss genes. See [wiki](#overview) for details.
 
 ![demo_plot_goea.png](https://github.com/moshi4/FastDTLmapper/wiki/images/demo_plot_goea.png)  
 **Fig. GOEA plot result example**  
 In this example, gain gene's significant over representation
-GOterms in N023 node is plotted with color.  
+GOterms in N023 node is plotted with color.
 CC indicates GO category of 'Cell Components'. 3 GO category BP,MF,CC exists.
