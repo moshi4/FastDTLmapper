@@ -38,7 +38,7 @@ jobs:
         run: sudo apt install -y graphviz
 
       - name: Install PyQt5 (required ete3 tree drawer)
-        run: sudo apt install -y python3-pyqt5 python3-pyqt5.qtopengl python3-numpy python3-lxml python3-six libqt5core5a qt5-style-plugins qt5ct
+        run: sudo apt install -y python3-pyqt5 python3-pyqt5.qtopengl python3-numpy python3-lxml python3-six libqt5core5a qt5-style-plugins qt5ct qt5-default
 
       - name: Run black format check
         run: poetry run black src tests --check --diff --verbose --exclude src/fastdtlmapper/bin
