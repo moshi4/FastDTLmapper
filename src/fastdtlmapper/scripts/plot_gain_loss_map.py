@@ -74,14 +74,14 @@ def main(args: Args = None):
             fgcolor=args.color_gain_num,
             fsize=args.fsize_num,
         )
-        gain_num_face.margin_bottom, gain_num_face.margin_right = -2, 2
+        gain_num_face.margin_bottom, gain_num_face.margin_right = 0, 2
         # Define gene num TextFace (color string with symbol)
         los_num_face = TextFace(
             args.loss_symbol + los_num,
             fgcolor=args.color_loss_num,
             fsize=args.fsize_num,
         )
-        los_num_face.margin_top, los_num_face.margin_right = -2, 2
+        los_num_face.margin_top, los_num_face.margin_right = 0, 2
 
         # Add defined TextFaces to Node(or Leaf)
         if node.is_leaf():
