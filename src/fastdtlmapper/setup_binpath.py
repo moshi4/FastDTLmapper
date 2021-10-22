@@ -17,6 +17,7 @@ class SetupBinpath:
             "mafft",
             "trimal",
             "iqtree",
+            "treerecs",
             "AnGST.py",
             "AnGST_wrapper.py",
             "parallel",
@@ -24,8 +25,7 @@ class SetupBinpath:
     )
 
     def __post_init__(self):
-        bin_path_list = self._get_bin_path_list()
-        self._add_bin_path(bin_path_list)
+        self._add_bin_path(self._get_bin_path_list())
         self._bin_exists_check(self.bin_list)
 
     def _get_bin_path_list(self) -> List[Path]:

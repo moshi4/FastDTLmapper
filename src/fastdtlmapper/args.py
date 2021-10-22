@@ -89,7 +89,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         "--tree",
         required=True,
         type=Path,
-        help="Input rooted species newick tree file (timetree is preferable)",
+        help="Input rooted species newick tree file",
         metavar="TREE",
     )
     parser.add_argument(
@@ -138,7 +138,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     parser.add_argument(
         "--inflation",
         type=float,
-        help=f"MCL inflation parameter (Default: {default_inflation})",
+        help=f"OrthoFinder MCL inflation parameter (Default: {default_inflation})",
         default=default_inflation,
         metavar="",
     )

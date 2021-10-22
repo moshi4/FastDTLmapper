@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from Bio import Phylo, SeqIO
 from Bio.Phylo.BaseTree import Tree
+from ete3 import Tree as EteTree
 from fastdtlmapper.angst.model import NodeEvent
 
 
@@ -107,3 +108,75 @@ class UtilTree:
             replace_tree_info = f.read().replace(":0.000000;", ";").replace("'", "")
         with open(nwk_tree_outfile, "w") as f:
             f.write(replace_tree_info)
+
+    @staticmethod
+    def multifurcate_zero_length_nodes(
+        gene_trees_infile: Union[str, Path],
+        multifurcate_outfile: Union[str, Path],
+        max_tree_num: int = 100,
+    ) -> None:
+        """Multifurcate zero branch length nodes (For IQ-TREE randomly bifurcated tree)
+
+        Args:
+            gene_trees_infile (Union[str, Path]): IQ-TREE gene trees file
+            multifurcate_outfile (Union[str, Path]): Multifurcate gene trees file
+            max_tree_num (int, optional): Number of max tree output
+
+        Note:
+            IQ-TREE randomly bifurcate identical sequences with zero branch length.
+            Random bifurcated topology make the DTL reconciliation result worse.
+            In order to resolve randomly bifurcated tree using 'treerecs' software,
+            multifurcate zero branch length IQ-TREE gene trees to use as treerecs input.
+        """
+        # Load gene trees
+        gene_tree_list: List[EteTree] = []
+        with open(gene_trees_infile) as f:
+            tree_text_lines = f.read().splitlines()
+            for tree_text in tree_text_lines[0:max_tree_num]:
+                gene_tree_list.append(EteTree(tree_text))
+
+        # Unroot all zero branch length nodes in gene trees
+        gene_tree_text_list = []
+        for gene_tree in gene_tree_list:
+            gene_tree.set_outgroup(gene_tree.get_midpoint_outgroup())
+            for node in gene_tree.traverse(strategy="postorder"):
+                descendants_node_list = node.get_descendants()
+                if len(descendants_node_list) <= 2:
+                    continue
+                descendants_total_dist = sum([n.dist for n in descendants_node_list])
+                if descendants_total_dist == 0:
+                    node.unroot()
+            # gene_tree.unroot()
+            gene_tree_text_list.append(gene_tree.write(dist_formatter="%1.10f"))
+
+        # Output unrooted gene trees
+        with open(multifurcate_outfile, "w") as f:
+            f.write("\n".join(gene_tree_text_list))
+
+    @staticmethod
+    def unroot_tree(
+        gene_trees_infile: Union[str, Path],
+        unroot_gene_trees_outfile: Union[str, Path],
+    ) -> None:
+        """Unroot tree
+
+        Args:
+            gene_trees_infile (Union[str, Path]): IQ-TREE gene trees file
+            unroot_gene_trees_outfile (Union[str, Path]): Output unroot gene trees file
+        """
+        # Load gene trees
+        gene_tree_list: List[EteTree] = []
+        with open(gene_trees_infile) as f:
+            tree_text_lines = f.read().splitlines()
+            for tree_text in tree_text_lines:
+                gene_tree_list.append(EteTree(tree_text))
+
+        # Unroot gene trees
+        gene_tree_text_list = []
+        for gene_tree in gene_tree_list:
+            gene_tree.unroot()
+            gene_tree_text_list.append(gene_tree.write(dist_formatter="%1.10f"))
+
+        # Output unrooted gene trees
+        with open(unroot_gene_trees_outfile, "w") as f:
+            f.write("\n".join(gene_tree_text_list))

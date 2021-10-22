@@ -69,10 +69,11 @@ class OutPath:
 
         self.tmp_parallel_cmds_file = self.parallel_cmds_dir / "tmp_parallel_cmds.txt"
 
-        self.mafft_output_log_file = self.parallel_cmds_dir / "mafft_output_log.csv"
-        self.trimal_output_log_file = self.parallel_cmds_dir / "trimal_output_log.csv"
-        self.iqtree_output_log_file = self.parallel_cmds_dir / "iqtree_output_log.csv"
-        self.angst_output_log_file = self.parallel_cmds_dir / "angst_output_log.csv"
+        self.mafft_log_file = self.parallel_cmds_dir / "mafft_log.csv"
+        self.trimal_log_file = self.parallel_cmds_dir / "trimal_log.csv"
+        self.iqtree_log_file = self.parallel_cmds_dir / "iqtree_log.csv"
+        self.treerecs_log_file = self.parallel_cmds_dir / "treerecs_log.csv"
+        self.angst_log_file = self.parallel_cmds_dir / "angst_log.csv"
 
         self._makedirs()
 
