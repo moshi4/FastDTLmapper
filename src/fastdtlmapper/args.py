@@ -24,7 +24,7 @@ class Args:
     inflation: float
     timetree: bool
     rseed: int
-    restart_from: int
+    restart_from: int = 1
 
     def __post_init__(self):
         self._start_time = time.time()
