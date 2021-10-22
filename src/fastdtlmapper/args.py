@@ -24,6 +24,7 @@ class Args:
     inflation: float
     timetree: bool
     rseed: int
+    restart_from: int
 
     def __post_init__(self):
         self._start_time = time.time()
@@ -155,6 +156,16 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         default=default_rseed,
         metavar="",
     )
+    #######################################################
+    # Hidden test option for developer
+    #######################################################
+    parser.add_argument(
+        "--restart_from",
+        type=int,
+        help=argparse.SUPPRESS,
+        default=1,
+        choices=[1, 2, 3, 4, 5, 6, 7],
+    )
 
     args = parser.parse_args(argv)
 
@@ -169,4 +180,5 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         args.inflation,
         args.timetree,
         args.rseed,
+        args.restart_from,
     )

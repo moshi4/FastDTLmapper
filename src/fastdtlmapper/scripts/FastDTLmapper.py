@@ -33,22 +33,29 @@ def main(args: Optional[Args] = None):
     # 00. Prepare analysis data
     format_user_tree(args.tree_file, outpath, cmd)
     format_user_fasta(args.indir, outpath.user_fasta_dir)
-    # 01. Grouping ortholog sequences using OrthoFinder
-    orthofinder_run(outpath, cmd)
-    # 02. Align each OG(Ortholog Group) sequences using mafft
-    mafft_run(outpath, cmd)
-    # 03. Trim each OG alignment using trimal
-    trimal_run(outpath, cmd)
-    # 04. Reconstruct each OG gene tree using iqtree
-    iqtree_run(outpath, cmd)
-    # 05. Correct gene tree multifurcation using treerecs
-    treerecs_run(outpath, cmd)
-    # 06. DTL reconciliation using AnGST
-    angst_run(outpath, cmd)
-    # 07. Aggregate and map DTL reconciliation result
-    group_id2all_node_event = aggregate_dtl_results(args, outpath)
-    output_aggregate_map_results(outpath, group_id2all_node_event)
-    output_aggregate_transfer_results(outpath)
+    if args.restart_from <= 1:
+        # 01. Grouping ortholog sequences using OrthoFinder
+        orthofinder_run(outpath, cmd)
+    if args.restart_from <= 2:
+        # 02. Align each OG(Ortholog Group) sequences using mafft
+        mafft_run(outpath, cmd)
+    if args.restart_from <= 3:
+        # 03. Trim each OG alignment using trimal
+        trimal_run(outpath, cmd)
+    if args.restart_from <= 4:
+        # 04. Reconstruct each OG gene tree using iqtree
+        iqtree_run(outpath, cmd)
+    if args.restart_from <= 5:
+        # 05. Correct gene tree multifurcation using treerecs
+        treerecs_run(outpath, cmd)
+    if args.restart_from <= 6:
+        # 06. DTL reconciliation using AnGST
+        angst_run(outpath, cmd)
+    if args.restart_from <= 7:
+        # 07. Aggregate and map DTL reconciliation result
+        group_id2all_node_event = aggregate_dtl_results(args, outpath)
+        output_aggregate_map_results(outpath, group_id2all_node_event)
+        output_aggregate_transfer_results(outpath)
 
     args.write_log(outpath.run_config_log_file)
 
@@ -208,7 +215,7 @@ def treerecs_run(outpath: OutPath, cmd: Cmd) -> None:
 
 def angst_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run AnGST"""
-    print("\n# 05. DTL reconciliation using AnGST")
+    print("\n# 06. DTL reconciliation using AnGST")
     angst_cmd_list = []
     for boot_tree_file in sorted(outpath.dtl_rec_dir.glob("**/*_recs.nwk")):
         outdir = boot_tree_file.parent.parent / "angst"
@@ -223,7 +230,7 @@ def angst_run(outpath: OutPath, cmd: Cmd) -> None:
 
 def aggregate_dtl_results(args: Args, outpath: OutPath) -> Dict[str, List[NodeEvent]]:
     """Aggregate DTL reconciliation result"""
-    print("\n# 06. Aggregate and map DTL reconciliation result")
+    print("\n# 07. Aggregate and map DTL reconciliation result")
     group_id2node_event_list: Dict[str, List[NodeEvent]] = {}
     for dtl_rec_group_dir in sorted(outpath.dtl_rec_dir.glob("*")):
         group_id = dtl_rec_group_dir.name
