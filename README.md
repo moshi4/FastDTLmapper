@@ -51,7 +51,7 @@ Install latest development version with pip:
 
 ### Dependencies
 
-Python package dependencies list here (Auto installed with pip).
+Python package dependencies list here (auto installed with pip).
 
 Well known python package `numpy`, `pandas`, `scipy` and
 
@@ -62,35 +62,93 @@ Well known python package `numpy`, `pandas`, `scipy` and
 - [ETE3](http://etetoolkit.org/)  
   Tree analysis and visualization tool
 
-Following dependencies are packaged in **[src/fastdtlmapper/bin](https://github.com/moshi4/FastDTLmapper/tree/main/src/fastdtlmapper/bin)** directory.  
+Following dependencies are packaged in [src/fastdtlmapper/bin](https://github.com/moshi4/FastDTLmapper/tree/main/src/fastdtlmapper/bin) directory.  
 
-- [OrthoFinder](https://github.com/davidemms/OrthoFinder)  
+- [OrthoFinder](https://github.com/davidemms/OrthoFinder) [v2.5.2]  
   Orthology inference tool
-- [mafft](https://mafft.cbrc.jp/alignment/software/)  
+- [mafft](https://mafft.cbrc.jp/alignment/software/) [v7.487]  
   Sequences alignment tool
-- [trimal](http://trimal.cgenomics.org/)  
+- [trimal](http://trimal.cgenomics.org/) [v1.4]  
   Alignment sequences trim tool
-- [IQ-TREE](http://www.iqtree.org/)  
+- [IQ-TREE](http://www.iqtree.org/) [v2.1.3]  
   Phylogenetic tree reconstruction tool
+- [Treerecs](https://project.inria.fr/treerecs/) [v1.2]  
+  Multifurcated gene tree correction tool  
 - [AnGST](https://github.com/almlab/angst)  
   DTL reconciliation tool (Requires Python 2.X to run)
-- [parallel](https://www.gnu.org/software/parallel/)  
+- [parallel](https://www.gnu.org/software/parallel/) [v20200922]  
   Job parallelization tool (Requires Perl to run)
 
+<details>
+<summary>Dependencies Citation List</summary>
+
+BioPython:
+>Cock, P.J.A. et al.  
+>Biopython: freely available Python tools for computational molecular biology and bioinformatics. (2009)  
+>Bioinformatics 25(11) 1422-3  
+
+GOAtools:
+>Klopfenstein DV, Zhang L, Pedersen BS, ... Tang H  
+>GOATOOLS: A Python library for Gene Ontologyy analyses (2018)  
+>Scientific reports 8:10872  
+
+ETE:
+>Huerta-Cepas J., Serra F. and Bork P.  
+>ETE 3: Reconstruction, analysis and visualization of phylogenomic data (2016)  
+>Mol Biol Evol 33(6) 1635-1638
+
+OrthoFinder:
+>Emms D.M. & Kelly S.  
+>OrthoFinder: phylogenetic orthology inference for comparative genomics (2019)  
+>Genome Biology 20:238  
+
+MAFFT:
+>Yamada, Tomii, Katoh.  
+>Application of the MAFFT sequence alignment program to large data—reexamination of the usefulness of chained guide trees. (2016)  
+>Bioinformatics 32:3246-3251  
+
+trimAl:
+>Salvador Capella-Gutierrez; Jose M. Silla-Martinez; Toni Gabaldon.  
+>trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses. (2009)  
+>Bioinformatics 25: 1972-1973.  
+
+IQ-TREE:
+>B.Q. Minh, H.A. Schmidt, O. Chernomor, D. Schrempf, M.D. Woodhams, A. von Haeseler, R. Lanfear.  
+>IQ-TREE 2: New models and efficient methods for phylogenetic inference in the genomic era. (2020)  
+>Mol. Biol. Evol. 37:1530-1534.  
+
+Treerecs:
+>Comte N, Morel B, Hasic D, Guéguen L, Boussau B, Daubin V, Penel S, Scornavacca C, Gouy M, Stamatakis A, et al.  
+>Treerecs: an integrated phylogenetic tool, from sequences to reconciliations (2020)  
+>Bioinformatics 36:4822–4824  
+  
+AnGST:
+>Lawrence A David and Eric J Alm.  
+>Rapid evolutionary innovation during an Archaean genetic expansion. (2010)  
+>Nature. 469(7328):93-6  
+
+parallel:
+>O. Tange  
+>GNU Parallel - The Command-Line Power Tool, ;login: (2011)  
+>The USENIX Magazine, February 2011:42-47.  
+  
+</details>
+
 ## Analysis Pipeline
+
+This is brief description of analysis pipeline. See [wiki](#overview) for details.
 
 1. Grouping ortholog sequences using OrthoFinder
 2. Align each OG(Ortholog Group) sequences using mafft
 3. Trim each OG alignment using trimal
 4. Reconstruct each OG gene tree using IQ-TREE
-5. DTL reconciliation of species tree & each OG gene tree using AnGST
-6. Aggregate and map genome-wide DTL reconciliation result
-
-This is summary description. See [wiki](#overview) for details.
+5. Correct each OG gene tree multifurcation using Treerecs
+6. DTL reconciliation of species tree & each OG gene tree using AnGST
+7. Aggregate and map genome-wide DTL reconciliation result
 
 ## Command Usage
 
-### Basic Run Command
+### Basic Command
 
     FastDTLmapper -i [fasta|genbank directory] -t [species tree file] -o [output directory]
 
@@ -118,10 +176,11 @@ If user set this option, input species tree must be ultrametric tree.
 
 #### Input Limitation
 
-- fasta or genbank files (--indir option)  
-  :warning: Following characters cannot be included in file name '_', '-', '|', '.'
-- species tree file (--tree option)  
-  :warning: Species name in species tree must match fasta or genbank file name
+fasta or genbank files (--indir option)  
+>:warning: Following characters cannot be included in file name '_', '-', '|', '.'  
+
+species tree file (--tree option)  
+>:warning: Species name in species tree must match fasta or genbank file name  
 
 ### Example Command
 
@@ -155,8 +214,9 @@ If user set this option, input species tree must be ultrametric tree.
     │   │   ├── OG0000000_aln_trim.fa        -- Trimmed OG alignement fasta file
     │   │   ├── OG0000000_dtl_map.nwk        -- OG DTL event mapped tree file
     │   │   ├── OG0000000_gain_loss_map.nwk  -- OG Gain-Loss event mapped tree file
-    │   │   ├── angst/                       -- AnGST DTL reconciliation result
-    │   │   └── iqtree/                      -- IQ-TREE gene tree reconstruction result
+    │   │   ├── iqtree/                      -- IQ-TREE gene tree reconstruction result
+    │   │   ├── treerecs/                    -- Treerecs multifurcated gene tree correction result
+    │   │   └── angst/                       -- AnGST DTL reconciliation result
     │   │
     │   ├── OG0000001/
     │   . 
@@ -180,7 +240,7 @@ If user set this option, input species tree must be ultrametric tree.
 
 FastDTLmapper subtool `plot_gain_loss_map` supports for plotting
 publication-ready gain/loss map figure as shown below.
-Users can plot easily and can output in any format they want by
+User can plot easily and can output in any format user want by
 changing plotting parameter.
 See [wiki](#overview) for details.
 
