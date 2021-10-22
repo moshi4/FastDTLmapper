@@ -30,7 +30,7 @@ def main(args: Optional[Args] = None):
 
     # Check user input
     InputCheck(args.indir, args.tree_file).run()
-    # # 00. Prepare analysis data
+    # 00. Prepare analysis data
     format_user_tree(args.tree_file, outpath, cmd)
     format_user_fasta(args.indir, outpath.user_fasta_dir)
     # 01. Grouping ortholog sequences using OrthoFinder
@@ -41,9 +41,11 @@ def main(args: Optional[Args] = None):
     trimal_run(outpath, cmd)
     # 04. Reconstruct each OG gene tree using iqtree
     iqtree_run(outpath, cmd)
-    # 05. DTL reconciliation using AnGST
+    # 05. Correct gene tree multifurcation using treerecs
+    treerecs_run(outpath, cmd)
+    # 06. DTL reconciliation using AnGST
     angst_run(outpath, cmd)
-    # 06. Aggregate and map DTL reconciliation result
+    # 07. Aggregate and map DTL reconciliation result
     group_id2all_node_event = aggregate_dtl_results(args, outpath)
     output_aggregate_map_results(outpath, group_id2all_node_event)
     output_aggregate_transfer_results(outpath)
@@ -71,9 +73,10 @@ def format_user_fasta(fasta_dir: Path, format_fasta_dir: Path) -> None:
         fasta_outfile = format_fasta_dir / infile.with_suffix(".fa").name
         species_name = infile.stem
         if infile.suffix in (".fa", ".faa", ".fasta"):
+            # Add serial number annotation to fasta
             UtilFasta(infile).add_serial_id(fasta_outfile, species_name)
         elif infile.suffix in (".gb", ".gbk", ".genbank"):
-
+            # Convert genbank to fasta with serial number annotation
             UtilGenbank(infile).convert_cds_fasta(
                 fasta_outfile, "protein", species_name
             )
@@ -116,7 +119,7 @@ def mafft_run(outpath: OutPath, cmd: Cmd) -> None:
             mafft_cmd_list.append(mafft_cmd)
 
     cmd.run_parallel_cmd(
-        mafft_cmd_list, outpath.tmp_parallel_cmds_file, outpath.mafft_output_log_file
+        mafft_cmd_list, outpath.tmp_parallel_cmds_file, outpath.mafft_log_file
     )
 
 
@@ -132,7 +135,7 @@ def trimal_run(outpath: OutPath, cmd: Cmd) -> None:
         shutil.copy(aln_file, aln_trim_file)
 
     cmd.run_parallel_cmd(
-        trimal_cmd_list, outpath.tmp_parallel_cmds_file, outpath.trimal_output_log_file
+        trimal_cmd_list, outpath.tmp_parallel_cmds_file, outpath.trimal_log_file
     )
 
     # If trimal removed sequence, use raw mafft alignment in next step
@@ -170,22 +173,51 @@ def iqtree_run(outpath: OutPath, cmd: Cmd) -> None:
             UtilTree.make_3genes_tree(aln_trim_file, gene_tree_file)
 
     cmd.run_parallel_cmd(
-        iqtree_cmd_list, outpath.tmp_parallel_cmds_file, outpath.iqtree_output_log_file
+        iqtree_cmd_list, outpath.tmp_parallel_cmds_file, outpath.iqtree_log_file
     )
+
+
+def treerecs_run(outpath: OutPath, cmd: Cmd) -> None:
+    """Run treerecs"""
+    print("\n# 05. Correct gene tree multifurcation using treerecs")
+    treerecs_cmd_list, treerecs_outfile_list = [], []
+    for boot_tree_file in sorted(outpath.dtl_rec_dir.glob("**/iqtree/*.ufboot")):
+        outdir = boot_tree_file.parent.parent / "treerecs"
+        outdir.mkdir(exist_ok=True)
+        # Multifurcate IQ-TREE boot trees
+        group_id = boot_tree_file.parent.parent.name
+        multifurcate_boot_tree_file = outdir / (group_id + "_multifurcate.ufboot")
+        UtilTree.multifurcate_zero_length_nodes(
+            boot_tree_file, multifurcate_boot_tree_file
+        )
+        treerecs_cmd = cmd.get_treerecs_cmd(
+            outpath.um_tree_file, multifurcate_boot_tree_file, outdir
+        )
+        treerecs_cmd_list.append(treerecs_cmd)
+
+        treerecs_outfile = outdir / (multifurcate_boot_tree_file.name + "_recs.nwk")
+        treerecs_outfile_list.append(treerecs_outfile)
+
+    cmd.run_parallel_cmd(
+        treerecs_cmd_list, outpath.tmp_parallel_cmds_file, outpath.treerecs_log_file
+    )
+    # Unroot treerecs rooted tree (AnGST only accepts unrooted tree)
+    for treerecs_outfile in treerecs_outfile_list:
+        UtilTree.unroot_tree(treerecs_outfile, treerecs_outfile)
 
 
 def angst_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run AnGST"""
     print("\n# 05. DTL reconciliation using AnGST")
     angst_cmd_list = []
-    for boot_tree_file in sorted(outpath.dtl_rec_dir.glob("**/*.ufboot")):
+    for boot_tree_file in sorted(outpath.dtl_rec_dir.glob("**/*_recs.nwk")):
         outdir = boot_tree_file.parent.parent / "angst"
         outdir.mkdir(exist_ok=True)
         angst_cmd = cmd.get_angst_cmd(outpath.um_tree_file, boot_tree_file, outdir)
         angst_cmd_list.append(angst_cmd)
 
     cmd.run_parallel_cmd(
-        angst_cmd_list, outpath.tmp_parallel_cmds_file, outpath.angst_output_log_file
+        angst_cmd_list, outpath.tmp_parallel_cmds_file, outpath.angst_log_file
     )
 
 

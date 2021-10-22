@@ -48,6 +48,19 @@ class Cmd:
             + f"--seed {self.params.rseed} {boot_opt} --redo --quiet 2>&1"
         )
 
+    def get_treerecs_cmd(
+        self,
+        species_tree_file: Union[str, Path],
+        boot_tree_file: Union[str, Path],
+        outdir: Union[str, Path],
+    ) -> str:
+        """Get Treerecs run command"""
+        return (
+            f"treerecs -s {species_tree_file} -g {boot_tree_file} -o {outdir} "
+            + f"--dupcost {self.params.dup_cost} --losscost {self.params.los_cost} "
+            + "--output-without-description -f --quiet 2>&1"
+        )
+
     def get_angst_cmd(
         self,
         species_tree_file: Union[str, Path],
