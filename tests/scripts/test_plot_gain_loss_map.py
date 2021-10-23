@@ -26,7 +26,7 @@ def test_plot_gain_loss_map_user_param(
     # It's impossible, so Color,Symbol,FontSize options are ignored
     argv = (
         f"-i {dtl_map_nwk_file} -o {outfile} --plot_margin 100 "
-        + "--plot_width 1000 --title helloworld --ladderize"
+        + "--plot_width 1000 --title helloworld --ladderize --add_brn_dup_trn"
     )
     args = get_args(argv.split(" "))
     main(args)
