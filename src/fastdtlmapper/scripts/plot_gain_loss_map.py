@@ -87,10 +87,10 @@ def main(args: Args = None):
         if node.is_leaf():
             node_name_face.fsize = args.fsize_leaf
             node_name_face.margin_left, node_name_face.margin_right = 3, 3
+            node.add_face(gain_num_face, column=0, position="float")
+            node.add_face(los_num_face, column=0, position="float")
+            node.add_face(gene_num_face, column=1, position="float")
             node.add_face(node_name_face, column=0, position="branch-right")
-            node.add_face(gene_num_face, column=1, position="branch-right")
-            node.add_face(gain_num_face, column=2, position="branch-right")
-            node.add_face(los_num_face, column=2, position="branch-right")
         else:
             node_name_face.fsize = args.fsize_node
             node.add_face(gain_num_face, column=0, position="float")
@@ -171,7 +171,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     ###########################################################################
     # Plot style options
     ###########################################################################
-    default_plot_scale = 90
+    default_plot_scale = 80
     parser.add_argument(
         "--plot_scale",
         type=int,
@@ -179,7 +179,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         default=default_plot_scale,
         metavar="",
     )
-    default_plot_margin = 0
+    default_plot_margin = 15
     parser.add_argument(
         "--plot_margin",
         type=int,
