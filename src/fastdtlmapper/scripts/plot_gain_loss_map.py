@@ -276,7 +276,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     parser.add_argument(
         "--fsize_leaf_name",
         type=int,
-        help=f"Plot font size of leaf(species) name (Default: {default_fsize_leaf_name})",
+        help=f"Plot font size of leaf name (Default: {default_fsize_leaf_name})",
         default=default_fsize_leaf_name,
         metavar="",
     )
