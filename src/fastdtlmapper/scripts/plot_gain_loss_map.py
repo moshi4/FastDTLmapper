@@ -23,9 +23,11 @@ class Args:
     color_loss_num: str
     gain_symbol: str
     loss_symbol: str
-    fsize_node: int
-    fsize_leaf: int
-    fsize_num: int
+    fsize_node_name: int
+    fsize_leaf_name: int
+    fsize_gene_num: int
+    fsize_gain_num: int
+    fsize_loss_num: int
     fsize_title: int
     fsize_legend: int
 
@@ -64,7 +66,7 @@ def main(args: Args = None):
         # Define node name TextFace (normal string style)
         node_name_face = TextFace(node_name, bold=True, fstyle="italic")
         # Define gene num TextFace (color rectangle style)
-        gene_num_face = TextFace(" " + gene_num, fsize=args.fsize_num, bold=True)
+        gene_num_face = TextFace(" " + gene_num, fsize=args.fsize_gene_num, bold=True)
         gene_num_face.background.color = args.color_gene_num
         gene_num_face.border.width = 1
         gene_num_face.margin_left, gene_num_face.margin_right = 0, 2
@@ -72,27 +74,27 @@ def main(args: Args = None):
         gain_num_face = TextFace(
             args.gain_symbol + gain_num,
             fgcolor=args.color_gain_num,
-            fsize=args.fsize_num,
+            fsize=args.fsize_gain_num,
         )
         gain_num_face.margin_bottom, gain_num_face.margin_right = 0, 2
         # Define gene num TextFace (color string with symbol)
         los_num_face = TextFace(
             args.loss_symbol + los_num,
             fgcolor=args.color_loss_num,
-            fsize=args.fsize_num,
+            fsize=args.fsize_loss_num,
         )
         los_num_face.margin_top, los_num_face.margin_right = 0, 2
 
         # Add defined TextFaces to Node(or Leaf)
         if node.is_leaf():
-            node_name_face.fsize = args.fsize_leaf
+            node_name_face.fsize = args.fsize_leaf_name
             node_name_face.margin_left, node_name_face.margin_right = 3, 3
+            node.add_face(gain_num_face, column=0, position="float")
+            node.add_face(los_num_face, column=0, position="float")
+            node.add_face(gene_num_face, column=1, position="float")
             node.add_face(node_name_face, column=0, position="branch-right")
-            node.add_face(gene_num_face, column=1, position="branch-right")
-            node.add_face(gain_num_face, column=2, position="branch-right")
-            node.add_face(los_num_face, column=2, position="branch-right")
         else:
-            node_name_face.fsize = args.fsize_node
+            node_name_face.fsize = args.fsize_node_name
             node.add_face(gain_num_face, column=0, position="float")
             node.add_face(los_num_face, column=0, position="float")
             node.add_face(TextFace(""), column=1, position="float")
@@ -106,7 +108,7 @@ def main(args: Args = None):
     ts.branch_vertical_margin = args.plot_margin
     ts.scale = args.plot_scale
 
-    # Define title
+    # Define Title
     if args.title:
         ts.title.add_face(
             TextFace(args.title, fsize=args.fsize_title, bold=True), column=0
@@ -171,7 +173,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     ###########################################################################
     # Plot style options
     ###########################################################################
-    default_plot_scale = 90
+    default_plot_scale = 80
     parser.add_argument(
         "--plot_scale",
         type=int,
@@ -179,7 +181,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         default=default_plot_scale,
         metavar="",
     )
-    default_plot_margin = 0
+    default_plot_margin = 15
     parser.add_argument(
         "--plot_margin",
         type=int,
@@ -262,28 +264,44 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     ###########################################################################
     # Plot font size options
     ###########################################################################
-    default_fsize_node = 8
+    default_fsize_node_name = 8
     parser.add_argument(
-        "--fsize_node",
+        "--fsize_node_name",
         type=int,
-        help=f"Plot font size of node name (Default: {default_fsize_node})",
-        default=default_fsize_node,
+        help=f"Plot font size of node name (Default: {default_fsize_node_name})",
+        default=default_fsize_node_name,
         metavar="",
     )
-    default_fsize_leaf = 10
+    default_fsize_leaf_name = 10
     parser.add_argument(
-        "--fsize_leaf",
+        "--fsize_leaf_name",
         type=int,
-        help=f"Plot font size of leaf(species) name (Default: {default_fsize_leaf})",
-        default=default_fsize_leaf,
+        help=f"Plot font size of leaf name (Default: {default_fsize_leaf_name})",
+        default=default_fsize_leaf_name,
         metavar="",
     )
-    default_fsize_num = 8
+    default_fsize_gene_num = 8
     parser.add_argument(
-        "--fsize_num",
+        "--fsize_gene_num",
         type=int,
-        help=f"Plot font size of gene/gain/loss number (Default: {default_fsize_num})",
-        default=default_fsize_num,
+        help=f"Plot font size of gene number (Default: {default_fsize_gene_num})",
+        default=default_fsize_gene_num,
+        metavar="",
+    )
+    default_fsize_gain_num = 8
+    parser.add_argument(
+        "--fsize_gain_num",
+        type=int,
+        help=f"Plot font size of gain number (Default: {default_fsize_gain_num})",
+        default=default_fsize_gain_num,
+        metavar="",
+    )
+    default_fsize_loss_num = 8
+    parser.add_argument(
+        "--fsize_loss_num",
+        type=int,
+        help=f"Plot font size of loss number (Default: {default_fsize_loss_num})",
+        default=default_fsize_loss_num,
         metavar="",
     )
     default_fsize_title = 30
@@ -323,9 +341,11 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         args.color_loss_num,
         args.gain_symbol,
         args.loss_symbol,
-        args.fsize_node,
-        args.fsize_leaf,
-        args.fsize_num,
+        args.fsize_node_name,
+        args.fsize_leaf_name,
+        args.fsize_gene_num,
+        args.fsize_gain_num,
+        args.fsize_loss_num,
         args.fsize_title,
         args.fsize_legend,
     )
