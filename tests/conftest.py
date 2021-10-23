@@ -129,6 +129,6 @@ def goea_result_file(data_dir: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
-def gain_loss_map_nwk_file(data_dir: Path) -> Path:
-    """gain loss map newick file fixture"""
-    return data_dir / "all_gain_loss_map.nwk"
+def dtl_map_nwk_file(data_dir: Path) -> Path:
+    """dtl map newick file fixture"""
+    return data_dir / "all_dtl_map.nwk"
