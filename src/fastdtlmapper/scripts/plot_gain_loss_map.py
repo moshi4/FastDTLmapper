@@ -17,6 +17,7 @@ class Args:
     plot_width: Optional[int]
     title: Optional[str]
     ladderize: bool
+    add_brn_dup_trn: bool
     edit_mode: bool
     color_gene_num: str
     color_gain_num: str
@@ -33,7 +34,7 @@ class Args:
 
 
 def main(args: Args = None):
-    """Plot gain/loss map main function"""
+    """Plot gain(brn/dup/trn)/loss map main function"""
     # Get command line arguments
     if args is None:
         args = get_args()
@@ -49,13 +50,20 @@ def main(args: Args = None):
 
     for node in tree.traverse():
         # Get node name, gene number, gain/loss number
-        pattern = r"^(.+) \| (\d+) \[gain=(\d+) los=(\d+)\]"
+        pattern = r"^(.+) \| (\d+) \[brn=(\d+) dup=(\d+) los=(\d+) trn=(\d+)\]"
         result = re.match(pattern, node.name)
         if result is None or None in result.groups():
-            print(f"Input '{args.map_tree_infile}' is invalid gain/loss map file!!")
+            print(f"Input '{args.map_tree_infile}' is invalid dtl map file!!")
             exit(1)
-        node_name, gene_num, gain_num, los_num = result.groups()
+        node_name, gene_num, brn_num, dup_num, los_num, trn_num = result.groups()
         node.name = node_name
+
+        # Make gain information
+        gain_num = int(brn_num) + int(dup_num) + int(trn_num)
+        if args.add_brn_dup_trn:
+            gain_info = f"{gain_num} ({brn_num}/{dup_num}/{trn_num})"
+        else:
+            gain_info = str(gain_num)
 
         # Define NodeStyle (no display style)
         node_style = NodeStyle()
@@ -72,7 +80,7 @@ def main(args: Args = None):
         gene_num_face.margin_left, gene_num_face.margin_right = 0, 2
         # Define gain num TextFace (color string with symbol)
         gain_num_face = TextFace(
-            args.gain_symbol + gain_num,
+            args.gain_symbol + gain_info,
             fgcolor=args.color_gain_num,
             fsize=args.fsize_gain_num,
         )
@@ -121,8 +129,12 @@ def main(args: Args = None):
     gene_legend_face.border.width = 1
     gene_legend_face.background.color = args.color_gene_num
     gene_legend_face.margin_left, gene_legend_face.margin_right = 5, 0
+    if args.add_brn_dup_trn:
+        gain_legend_text = "Gain(Brn/Dup/Trn) Number"
+    else:
+        gain_legend_text = "Gain Number"
     gain_legend_face = TextFace(
-        args.gain_symbol + "Gain Number",
+        args.gain_symbol + gain_legend_text,
         fsize=args.fsize_legend,
         fgcolor=args.color_gain_num,
     )
@@ -173,12 +185,11 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     ###########################################################################
     # Plot style options
     ###########################################################################
-    default_plot_scale = 80
     parser.add_argument(
         "--plot_scale",
         type=int,
-        help=f"Horizontal branch scale plot parameter (Default: {default_plot_scale})",
-        default=default_plot_scale,
+        help="Horizontal branch scale plot parameter (Default: Auto Defined)",
+        default=None,
         metavar="",
     )
     default_plot_margin = 15
@@ -208,6 +219,11 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     parser.add_argument(
         "--ladderize",
         help="Plot ladderized style tree (Default: off)",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--add_brn_dup_trn",
+        help="Add Brn/Dup/Trn plot (Default: off)",
         action="store_true",
     )
     parser.add_argument(
@@ -323,6 +339,13 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
 
     args = parser.parse_args(argv)
 
+    # Define plot scale by whether brn/dup/trn plotting or not
+    if args.plot_scale is None:
+        if args.add_brn_dup_trn:
+            args.plot_scale = 150
+        else:
+            args.plot_scale = 80
+
     # Outfile extension validation check
     if args.outfile[-4:] not in (".png", ".svg", ".pdf"):
         parser.error("-o/--outfile extension must be *.png|*.svg|*.pdf")
@@ -335,6 +358,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         args.plot_width,
         args.title,
         args.ladderize,
+        args.add_brn_dup_trn,
         args.edit_mode,
         args.color_gene_num,
         args.color_gain_num,
