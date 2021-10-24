@@ -5,4 +5,5 @@ authors:
   given-names: Yuki
 title: "FastDTLmapper: Fast genome-wide DTL(Duplication-Transfer-Loss) event mapping tool"
 date-released: 2021-10-21
-url: "https://github.com/moshi4/FastDTLmapper"
+doi: 10.5281/zenodo.5591361
+url: https://github.com/moshi4/FastDTLmapper

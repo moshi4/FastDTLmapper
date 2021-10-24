@@ -1,4 +1,4 @@
-# (Under Construction) FastDTLmapper: Fast genome-wide DTL event mapper  
+# FastDTLmapper: Fast genome-wide DTL event mapper  
 
 ![Python3](https://img.shields.io/badge/Language-Python_3.7_|_3.8_|_3.9-steelblue)
 ![OS](https://img.shields.io/badge/OS-Linux-steelblue)
@@ -26,7 +26,7 @@ in the evolutionary process of organisms, I developed a software pipeline **Fast
 which automatically estimates and maps genome-wide gene gain/loss.  
 FastDTLmapper takes two inputs, 1. *Species tree (Newick format)* 2. *Genomic Protein CDSs (Fasta|Genbank format)*,
 and performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
-DTL reconciliation of species tree and gene trees.  
+DTL reconciliation of species tree and gene trees.
 Additionally, FastDTLmapper can perform
 [Plot Gain/Loss Map Figure](#plot-gainloss-map-figure) and
 [Functional Analysis (GOEA)](#functional-analysis-goea)
@@ -34,7 +34,7 @@ using packaged subtools.
 
 ![demo_all_gain_loss_map.png](https://github.com/moshi4/FastDTLmapper/wiki/images/demo_all_gain_loss_map.png)  
 **Fig. Genome-wide gain/loss map result example (all_gain_loss_map.nwk)**  
-Each node gain/loss data is mapped in following format (*NodeID | GeneCount [gain=GainCount los=LossCount]*)  
+Each node gain/loss data is mapped in following format (*NodeID | GeneNum [gain=GainNum los=LossNum]*)  
 Map data is embeded in newick format bootstrap value field and user can visualize using [SeaView](http://doua.prabi.fr/software/seaview).  
 
 ## Install
@@ -80,7 +80,7 @@ Following dependencies are packaged in [src/fastdtlmapper/bin](https://github.co
   Job parallelization tool (Requires Perl to run)
 
 <details>
-<summary>Dependencies Citation List</summary>
+<summary> Dependencies Citation List</summary>
 
 BioPython:
 >Cock, P.J.A. et al.  
@@ -136,7 +136,7 @@ parallel:
 
 ## Analysis Pipeline
 
-This is brief description of analysis pipeline. See [wiki](#overview) for details.
+This is brief description of analysis pipeline. See [wiki](https://github.com/moshi4/FastDTLmapper/wiki/1.1.-Analysis-Pipeline-(FastDTLmapper)) for details.
 
 1. Grouping ortholog sequences using OrthoFinder
 2. Align each OG(Ortholog Group) sequences using mafft
@@ -154,17 +154,17 @@ This is brief description of analysis pipeline. See [wiki](#overview) for detail
 
 ### Options
 
-    -h, --help           show this help message and exit
-    -i , --indir         Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.genbank) directory
-    -t , --tree          Input rooted species tree file (Newick format)
-    -o , --outdir        Output directory
-    -p , --process_num   Number of processor (Default: MaxProcessor - 1)
-    --dup_cost           Duplication event cost (Default: 2)
-    --los_cost           Loss event cost (Default: 1)
-    --trn_cost           Transfer event cost (Default: 3)
-    --inflation          MCL inflation parameter (Default: 3.0)
-    --timetree           Use species tree as timetree (Default: off)
-    --rseed              Number of random seed (Default: 0)
+    -h, --help            show this help message and exit
+    -i IN, --indir IN     Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.genbank) directory
+    -t TREE, --tree TREE  Input rooted species newick tree file
+    -o OUT, --outdir OUT  Output directory
+    -p , --process_num    Number of processor (Default: MaxProcessor - 1)
+    --dup_cost            Duplication event cost (Default: 2)
+    --los_cost            Loss event cost (Default: 1)
+    --trn_cost            Transfer event cost (Default: 3)
+    --inflation           OrthoFinder MCL inflation parameter (Default: 3.0)
+    --timetree            Use species tree as timetree in AnGST (Default: off)
+    --rseed               Number of random seed (Default: 0)
 
 #### Timetree Option
 
@@ -184,7 +184,29 @@ species tree file (--tree option)
 
 ### Example Command
 
-    FastDTLmapper -i ./example/fasta/ -t ./example/species_tree.nwk -o ./fastdtlmapper_result
+Download example dataset:
+
+    wget https://github.com/moshi4/FastDTLmapper/wiki/dataset/example.zip
+
+This dataset is identical to [example](https://github.com/moshi4/FastDTLmapper/tree/main/example) in this repository.
+
+#### 1. Minimum test dataset
+
+7 species, 100 CDS limited fasta dataset
+
+    FastDTLmapper -i example/minimum_dataset/fasta/ -t example/minimum_dataset/species_tree.nwk -o output_minimum
+
+#### 2. Mycoplasma dataset (Input Format = Fasta)
+
+7 Mycoplasma species, 500 ~ 1000 CDS fasta dataset
+
+    FastDTLmapper -i example/mycoplasma_dataset/fasta/ -t example/mycoplasma_dataset/species_tree.nwk -o output_mycoplasma_fasta
+
+#### 3. Mycoplasma dataset (Input Format = Genbank)
+
+7 Mycoplasma species, 500 ~ 1000 CDS genbank dataset
+
+    FastDTLmapper -i example/mycoplasma_dataset/genbank/ -t example/mycoplasma_dataset/species_tree.nwk -o output_mycoplasma_genbank
 
 ## Output Contents
 
@@ -196,7 +218,7 @@ species tree file (--tree option)
 | 01_orthofinder          | OrthoFinder raw output results                               |
 | 02_dtl_reconciliation   | Each OG(Ortholog Group) DTL reconciliation result            |
 | 03_aggregate_map_result | Genome-wide DTL reconciliation aggregated and mapped results |
-| log                     | Config log and command log files                                 |
+| log                     | Config log and command log files                             |
 
 ### Output Directory Structure & Files
 
@@ -242,7 +264,7 @@ FastDTLmapper subtool `plot_gain_loss_map` supports for plotting
 publication-ready gain/loss map figure as shown below.
 User can plot easily and can output in any format user want by
 changing plotting parameter.
-See [wiki](#overview) for details.
+See [wiki](https://github.com/moshi4/FastDTLmapper/wiki/3.1.-Usage-(plot_gain_loss_map)) for details.
 
 ![demo_plot_all_gain_loss_map.png](https://github.com/moshi4/FastDTLmapper/wiki/images/demo_plot_all_gain_loss_map.png)  
 **Fig. Gain/Loss map plot result example**
@@ -254,7 +276,7 @@ GOEA(GO Enrichment Analysis) in each node gain/loss genes.
 Each node gain/loss gene's significant GOterms are
 listed and plotted as shown below.
 This GOEA functional analysis is useful for getting glasp of genome-wide
-functional trends in gain/loss genes. See [wiki](#overview) for details.
+functional trends in gain/loss genes. See [wiki](https://github.com/moshi4/FastDTLmapper/wiki/2.1.-Usage-(FastDTLgoea)) for details.
 
 ![demo_plot_goea.png](https://github.com/moshi4/FastDTLmapper/wiki/images/demo_plot_goea.png)  
 **Fig. GOEA plot result example**  
