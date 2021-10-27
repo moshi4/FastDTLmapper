@@ -143,10 +143,9 @@ class UtilTree:
                 descendants_node_list = node.get_descendants()
                 if len(descendants_node_list) <= 2:
                     continue
-                descendants_total_dist = sum([n.dist for n in descendants_node_list])
-                if descendants_total_dist == 0:
+                children_total_dist = sum([n.dist for n in node.children])
+                if children_total_dist == 0:
                     node.unroot()
-            # gene_tree.unroot()
             gene_tree_text_list.append(gene_tree.write(dist_formatter="%1.10f"))
 
         # Output unrooted gene trees
