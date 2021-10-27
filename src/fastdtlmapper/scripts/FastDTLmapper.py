@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from fastdtlmapper.angst import AngstEventMap, AngstTransferGene, NodeEvent
-from fastdtlmapper.args import Args, get_args
+from fastdtlmapper.args import Args, RestartFrom, get_args
 from fastdtlmapper.cmd import Cmd
 from fastdtlmapper.input_check import InputCheck
 from fastdtlmapper.out_path import OutPath
 from fastdtlmapper.reconcilation import Reconciliation as Rec
 from fastdtlmapper.setup_binpath import SetupBinpath
 from fastdtlmapper.util import UtilFasta, UtilGenbank, UtilTree
+from fastdtlmapper.util.time import print_runtime
 
 
 def main(args: Optional[Args] = None):
@@ -33,25 +34,25 @@ def main(args: Optional[Args] = None):
     # 00. Prepare analysis data
     format_user_tree(args.tree_file, outpath, cmd)
     format_user_fasta(args.indir, outpath.user_fasta_dir)
-    if args.restart_from <= 1:
+    if args.restart_from <= RestartFrom.ORTHO_FINDER:
         # 01. Grouping ortholog sequences using OrthoFinder
         orthofinder_run(outpath, cmd)
-    if args.restart_from <= 2:
+    if args.restart_from <= RestartFrom.MAFFT:
         # 02. Align each OG(Ortholog Group) sequences using mafft
         mafft_run(outpath, cmd)
-    if args.restart_from <= 3:
+    if args.restart_from <= RestartFrom.TRIMAL:
         # 03. Trim each OG alignment using trimal
         trimal_run(outpath, cmd)
-    if args.restart_from <= 4:
+    if args.restart_from <= RestartFrom.IQTREE:
         # 04. Reconstruct each OG gene tree using iqtree
         iqtree_run(outpath, cmd)
-    if args.restart_from <= 5:
+    if args.restart_from <= RestartFrom.TREERECS:
         # 05. Correct gene tree multifurcation using treerecs
         treerecs_run(outpath, cmd)
-    if args.restart_from <= 6:
+    if args.restart_from <= RestartFrom.ANGST:
         # 06. DTL reconciliation using AnGST
         angst_run(outpath, cmd)
-    if args.restart_from <= 7:
+    if args.restart_from <= RestartFrom.AGG_MAP:
         # 07. Aggregate and map DTL reconciliation result
         group_id2all_node_event = aggregate_dtl_results(args, outpath)
         output_aggregate_map_results(outpath, group_id2all_node_event)

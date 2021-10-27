@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from dataclasses import dataclass
+from enum import IntEnum, auto
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -64,6 +65,18 @@ class Args:
             + f"Elapsed time = {elapsed_time:.2f}[h]"
         )
         return log_text
+
+
+class RestartFrom(IntEnum):
+    """RestartFrom Enum Class"""
+
+    ORTHO_FINDER = auto()
+    MAFFT = auto()
+    TRIMAL = auto()
+    IQTREE = auto()
+    TREERECS = auto()
+    ANGST = auto()
+    AGG_MAP = auto()
 
 
 def get_args(argv: Optional[List[str]] = None) -> Args:
@@ -145,7 +158,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
     )
     parser.add_argument(
         "--timetree",
-        help="Use species tree as timetree",
+        help="Use species tree as timetree in AnGST (Default: off)",
         action="store_true",
     )
     default_rseed = 0
@@ -163,8 +176,8 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         "--restart_from",
         type=int,
         help=argparse.SUPPRESS,
-        default=1,
-        choices=[1, 2, 3, 4, 5, 6, 7],
+        default=RestartFrom.ORTHO_FINDER,
+        choices=[rf.value for rf in RestartFrom],
     )
 
     args = parser.parse_args(argv)
