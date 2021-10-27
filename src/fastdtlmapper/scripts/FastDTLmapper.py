@@ -54,9 +54,7 @@ def main(args: Optional[Args] = None):
         angst_run(outpath, cmd)
     if args.restart_from <= RestartFrom.AGG_MAP:
         # 07. Aggregate and map DTL reconciliation result
-        group_id2all_node_event = aggregate_dtl_results(args, outpath)
-        output_aggregate_map_results(outpath, group_id2all_node_event)
-        output_aggregate_transfer_results(outpath)
+        aggregate_and_map(args, outpath)
 
     args.write_log(outpath.run_config_log_file)
 
@@ -114,6 +112,7 @@ def orthofinder_run(outpath: OutPath, cmd: Cmd) -> None:
         shutil.copy(fasta_file, dtl_rec_group_dir)
 
 
+@print_runtime
 def mafft_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run mafft"""
     print("\n# 02. Align each OG(Ortholog Group) sequences using mafft")
@@ -131,6 +130,7 @@ def mafft_run(outpath: OutPath, cmd: Cmd) -> None:
     )
 
 
+@print_runtime
 def trimal_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run trimal"""
     print("\n# 03. Trim each OG alignment using trimal")
@@ -154,6 +154,7 @@ def trimal_run(outpath: OutPath, cmd: Cmd) -> None:
             shutil.copy(aln_file, aln_trim_file)
 
 
+@print_runtime
 def iqtree_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run iqtree"""
     print("\n# 04. Reconstruct each OG gene tree using iqtree")
@@ -185,6 +186,7 @@ def iqtree_run(outpath: OutPath, cmd: Cmd) -> None:
     )
 
 
+@print_runtime
 def treerecs_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run treerecs"""
     print("\n# 05. Correct gene tree multifurcation using treerecs")
@@ -214,6 +216,7 @@ def treerecs_run(outpath: OutPath, cmd: Cmd) -> None:
         UtilTree.unroot_tree(treerecs_outfile, treerecs_outfile)
 
 
+@print_runtime
 def angst_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run AnGST"""
     print("\n# 06. DTL reconciliation using AnGST")
@@ -227,6 +230,14 @@ def angst_run(outpath: OutPath, cmd: Cmd) -> None:
     cmd.run_parallel_cmd(
         angst_cmd_list, outpath.tmp_parallel_cmds_file, outpath.angst_log_file
     )
+
+
+@print_runtime
+def aggregate_and_map(args: Args, outpath: OutPath):
+    """Run aggregate and map functions"""
+    group_id2all_node_event = aggregate_dtl_results(args, outpath)
+    output_aggregate_map_results(outpath, group_id2all_node_event)
+    output_aggregate_transfer_results(outpath)
 
 
 def aggregate_dtl_results(args: Args, outpath: OutPath) -> Dict[str, List[NodeEvent]]:
