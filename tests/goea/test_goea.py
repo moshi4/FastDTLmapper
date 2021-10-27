@@ -56,7 +56,7 @@ def test_goea_user_specified_param_plot(
 
 
 @pytest.mark.skip(reason="This test depends on network status.")
-def test_download_obo(tmp_path: Path) -> Path:
+def test_download_obo(tmp_path: Path):
     """test go-basic.obo file downaload"""
     go_basic_obo_file = tmp_path / "go-basic.obo"
     GOEA.download_obo(go_basic_obo_file)
