@@ -58,41 +58,44 @@ class GOEA:
     def plot(
         self,
         goea_result_file: Path,
-        output_prefix: Path,
+        plot_outfile: Path,
+        over_or_under: str,
+        title: str = "",
     ) -> None:
         """Plot GOEA significant GOterms
 
         Args:
             goea_result_file (Path): GOEA result file path
-            output_prefix (Path): Output files prefix path
+            plot_outfile (Path): Output file path
+            over_or_under (str): "over" or "under"
+            title (str): Plot title
         """
-        for goea_type in ("over", "under"):
-            # Extract goterm & pvalue
-            goterm2pvalue = self._extract_goterm2pvalue(goea_result_file, goea_type)
-            if len(goterm2pvalue) == 0:
-                continue
+        if over_or_under not in ("over", "under"):
+            raise ValueError("goea_type must be 'over' or 'under'")
 
-            # Plot color setting
-            goterm2hexcolor = {}
-            if self.plot_color:
-                # Set specified plot color
-                for goterm in goterm2pvalue.keys():
-                    goterm2hexcolor[goterm] = self.plot_color
-            else:
-                # Get hexcolor from pvalue for color plot
-                pvalue_abs_log10_list = [
-                    abs(math.log10(v)) for v in goterm2pvalue.values()
-                ]
-                pvalue_hexcolor_list = self._convert_hexcolor_gradient(
-                    pvalue_abs_log10_list
-                )
-                # Set yellow to red gradient plot color
-                for goterm, hexcolor in zip(goterm2pvalue.keys(), pvalue_hexcolor_list):
-                    goterm2hexcolor[goterm] = hexcolor
+        # Extract goterm & pvalue
+        goterm2pvalue = self._extract_goterm2pvalue(goea_result_file, over_or_under)
+        if len(goterm2pvalue) == 0:
+            return
 
-            # Plot GOterm with gradient color
-            plot_outfile = Path(f"{output_prefix}_{goea_type}.{self.plot_format}")
-            self._color_plot(plot_outfile, goterm2hexcolor, goterm2pvalue)
+        # Plot color setting
+        goterm2hexcolor = {}
+        if self.plot_color:
+            # Set specified plot color
+            for goterm in goterm2pvalue.keys():
+                goterm2hexcolor[goterm] = self.plot_color
+        else:
+            # Get hexcolor from pvalue for color plot
+            pvalue_abs_log10_list = [abs(math.log10(v)) for v in goterm2pvalue.values()]
+            pvalue_hexcolor_list = self._convert_hexcolor_gradient(
+                pvalue_abs_log10_list
+            )
+            # Set yellow to red gradient plot color
+            for goterm, hexcolor in zip(goterm2pvalue.keys(), pvalue_hexcolor_list):
+                goterm2hexcolor[goterm] = hexcolor
+
+        # Plot GOterm with gradient color
+        self._color_plot(plot_outfile, goterm2hexcolor, goterm2pvalue, title)
 
     def _extract_goterm2pvalue(
         self,
@@ -181,6 +184,7 @@ class GOEA:
         plot_outfile: Union[str, Path],
         goid2color: Dict[str, str],
         goid2pvalue: Dict[str, float] = {},
+        title: str = "",
     ) -> None:
         """Plot GO DAG using self-defined GO color
 
@@ -188,6 +192,7 @@ class GOEA:
             plot_outfile (str): Output plot file path
             goid2color (Dict[str, str]): go id and hexcolor dict
             goid2pvalue (Dict[str, float], optional): go id and pvalue dict
+            title (str): Plot title
         """
         # Get plot target GO DAG
         obodag = GODag(self.obo_file)
@@ -213,16 +218,6 @@ class GOEA:
         # Suppress useless header plot (e.g. L2 D2)
         godag_plg_vars = GODagPltVars()
         godag_plg_vars.fmthdr = "{GO}"
-
-        # Plot title
-        title = Path(plot_outfile).with_suffix("").name.replace("_", " ")
-        title += " representation\n"
-        title += f"Top{self.plot_max_num} GOterm "
-        if self.use_adjusted_pvalue:
-            title += f"(BH adjusted P-value < {self.pvalue_thr})"
-        else:
-            title += f"(P-value < {self.pvalue_thr})"
-        title = f"\n{title}\n"
 
         # Create plot obj & add plot color
         godagplot = GODagSmallPlot(
