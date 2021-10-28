@@ -1,4 +1,4 @@
-# FastDTLmapper: Fast genome-wide DTL event mapper  
+# FastDTLmapper: Fast genome-wide DTL event mapper
 
 ![Python3](https://img.shields.io/badge/Language-Python_3.7_|_3.8_|_3.9-steelblue)
 ![OS](https://img.shields.io/badge/OS-Linux-steelblue)
@@ -24,7 +24,7 @@ driving adaptive evolution, but it remains largely unexplored.
 Therefore, to investigate the relationship between gene gain/loss and adaptive evolution
 in the evolutionary process of organisms, I developed a software pipeline **FastDTLmapper**
 which automatically estimates and maps genome-wide gene gain/loss.  
-FastDTLmapper takes two inputs, 1. *Species tree (Newick format)* 2. *Genomic Protein CDSs (Fasta|Genbank format)*,
+FastDTLmapper takes two inputs, 1. *Species tree (Newick format)* & 2. *Genomic Protein CDSs (Fasta|Genbank format)*,
 and performs genome-wide mapping of DTL(Duplication-Transfer-Loss) events by
 DTL reconciliation of species tree and gene trees.
 Additionally, FastDTLmapper can perform
@@ -162,25 +162,25 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
     --dup_cost            Duplication event cost (Default: 2)
     --los_cost            Loss event cost (Default: 1)
     --trn_cost            Transfer event cost (Default: 3)
-    --inflation           OrthoFinder MCL inflation parameter (Default: 3.0)
+    --inflation           OrthoFinder MCL inflation parameter (Default: 1.5)
     --timetree            Use species tree as timetree in AnGST (Default: off)
     --rseed               Number of random seed (Default: 0)
 
-#### Timetree Option
+- **Timetree Option**
 
-If user set this option, input species tree must be ultrametric tree.  
---timetree enable AnGST timetree option below (See [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>) for details).  
-> If the branch lengths on the provided species tree represent times,
-> AnGST can restrict the set of possible inferred gene transfers to
-> only those between contemporaneous lineages  
+  If user set this option, input species tree must be ultrametric tree.  
+  --timetree enable AnGST timetree option below (See [AnGST manual](<https://github.com/almlab/angst/blob/master/doc/manual.pdf>) for details).  
+  > If the branch lengths on the provided species tree represent times,
+  > AnGST can restrict the set of possible inferred gene transfers to
+  > only those between contemporaneous lineages  
 
-#### Input Limitation
+- **Input Limitation**
 
-fasta or genbank files (--indir option)  
->:warning: Following characters cannot be included in file name '_', '-', '|', '.'  
+  fasta or genbank files (--indir option)  
+  >:warning: Following characters cannot be included in file name '_', '-', '|', '.'  
 
-species tree file (--tree option)  
->:warning: Species name in species tree must match fasta or genbank file name  
+  species tree file (--tree option)  
+  >:warning: Species name in species tree must match fasta or genbank file name  
 
 ### Example Command
 
@@ -190,23 +190,23 @@ Download example dataset:
 
 This dataset is identical to [example](https://github.com/moshi4/FastDTLmapper/tree/main/example) in this repository.
 
-#### 1. Minimum test dataset
+- **Minimum test dataset**
 
-7 species, 100 CDS limited fasta dataset
+  7 species, 100 CDS limited fasta dataset
 
-    FastDTLmapper -i example/minimum_dataset/fasta/ -t example/minimum_dataset/species_tree.nwk -o output_minimum
+      FastDTLmapper -i example/minimum_dataset/fasta/ -t example/minimum_dataset/species_tree.nwk -o output_minimum
 
-#### 2. Mycoplasma dataset (Input Format = Fasta)
+- **Mycoplasma dataset (Input Format = Fasta)**
 
-7 Mycoplasma species, 500 ~ 1000 CDS fasta dataset
+  7 Mycoplasma species, 500 ~ 1000 CDS fasta dataset
 
-    FastDTLmapper -i example/mycoplasma_dataset/fasta/ -t example/mycoplasma_dataset/species_tree.nwk -o output_mycoplasma_fasta
+      FastDTLmapper -i example/mycoplasma_dataset/fasta/ -t example/mycoplasma_dataset/species_tree.nwk -o output_mycoplasma_fasta
 
-#### 3. Mycoplasma dataset (Input Format = Genbank)
+- **Mycoplasma dataset (Input Format = Genbank)**
 
-7 Mycoplasma species, 500 ~ 1000 CDS genbank dataset
+  7 Mycoplasma species, 500 ~ 1000 CDS genbank dataset
 
-    FastDTLmapper -i example/mycoplasma_dataset/genbank/ -t example/mycoplasma_dataset/species_tree.nwk -o output_mycoplasma_genbank
+      FastDTLmapper -i example/mycoplasma_dataset/genbank/ -t example/mycoplasma_dataset/species_tree.nwk -o output_mycoplasma_genbank
 
 ## Output Contents
 
@@ -255,6 +255,8 @@ This dataset is identical to [example](https://github.com/moshi4/FastDTLmapper/t
     └── log/
         ├── parallel_cmds/ -- Parallel run command log results
         └── run_config.log -- Program run config log file
+
+See [wiki](https://github.com/moshi4/FastDTLmapper/wiki/1.2.-Output-Contents-(FastDTLmapper)) for output files details.
 
 ## Further Analysis
 

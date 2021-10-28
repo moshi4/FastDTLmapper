@@ -49,7 +49,7 @@ class SetupBinpath:
     def _bin_exists_check(self, bin_list: List[str]) -> None:
         """Check bin program exists"""
         bin_exists_check_flg = False
-        print("Required bin program exists check...")
+        print("Checking required bin programs...")
         for bin in bin_list:
             bin_path = shutil.which(bin)
             if bin_path:
@@ -61,4 +61,4 @@ class SetupBinpath:
             print("Required bin program not exist!!\n")
             exit(1)
         else:
-            print("All required bin programs exists.\n")
+            print("Check result = All OK!!\n")

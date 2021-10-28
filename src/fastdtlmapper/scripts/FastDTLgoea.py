@@ -224,7 +224,21 @@ def run_goatools_goea(
         goea_result_file_list = goea.run(output_prefix)
         # Plot GOEA significant GOterms
         for goea_result_file in goea_result_file_list:
-            goea.plot(goea_result_file, goea_result_file.with_suffix(""))
+            for over_or_under in ("over", "under"):
+                go_category = str(goea_result_file.with_suffix("")).split("_")[-1]
+                # Define title
+                title = f"{node_id} {gain_or_loss} {over_or_under} representation\n"
+                title += f"Top{plot_max_num} {go_category} GOterm "
+                if use_adjusted_pvalue:
+                    title += f"(BH adjusted P-value < {pvalue_thr})"
+                else:
+                    title += f"(P-value < {pvalue_thr})"
+                title = f"\n{title}\n"
+
+                plot_outfile = Path(
+                    f"{output_prefix}_{over_or_under}_{go_category}.{plot_format}"
+                )
+                goea.plot(goea_result_file, plot_outfile, over_or_under, title)
 
 
 if __name__ == "__main__":

@@ -22,9 +22,9 @@ def test_makedirs_goea_ok(tmp_path: Path):
     outpath = OutPath(tmp_path)
     # No error occur, after FastDTLmapper run
     OutPath(outpath.rootdir, goea_mode=True)
-    assert outpath.go_annotation_workdir
-    assert outpath.go_enrichment_dir
-    assert outpath.result_summary_plot_dir
+    assert outpath.go_annotation_workdir.is_dir()
+    assert outpath.go_enrichment_dir.is_dir()
+    assert outpath.result_summary_plot_dir.is_dir()
 
 
 def test_makedirs_goea_ng(tmp_path: Path):

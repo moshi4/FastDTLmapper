@@ -21,7 +21,8 @@ def test_goea_default_param_plot(
     output_prefix = tmp_path / "goea"
     goea_result_file_list = goea.run(output_prefix)
     for goea_result_file in goea_result_file_list:
-        goea.plot(goea_result_file, goea_result_file.with_suffix(""))
+        plot_outfile = goea_result_file.with_suffix(".png")
+        goea.plot(goea_result_file, plot_outfile, "over")
     # Check goea result file exists
     for goea_result_file in goea_result_file_list:
         assert goea_result_file.is_file()
@@ -34,7 +35,7 @@ def test_goea_user_specified_param_plot(
     go_basic_obo_file: Path,
     tmp_path: Path,
 ):
-    """test GOEA default parameter plot (Only check run successfully)"""
+    """test GOEA user specified parameter plot (Only check run successfully)"""
     goea = GOEA(
         target_list_file=goea_target_gene_list_file,
         all_list_file=goea_all_gene_list_file,
@@ -49,14 +50,16 @@ def test_goea_user_specified_param_plot(
     output_prefix = tmp_path / "goea"
     goea_result_file_list = goea.run(output_prefix)
     for goea_result_file in goea_result_file_list:
-        goea.plot(goea_result_file, goea_result_file.with_suffix(""))
+        plot_outfile = goea_result_file.with_suffix(".png")
+        goea.plot(goea_result_file, plot_outfile, "under", "Title")
+        plot_outfile.is_file()
     # Check goea result file exists
     for goea_result_file in goea_result_file_list:
         assert goea_result_file.is_file()
 
 
 @pytest.mark.skip(reason="This test depends on network status.")
-def test_download_obo(tmp_path: Path) -> Path:
+def test_download_obo(tmp_path: Path):
     """test go-basic.obo file downaload"""
     go_basic_obo_file = tmp_path / "go-basic.obo"
     GOEA.download_obo(go_basic_obo_file)

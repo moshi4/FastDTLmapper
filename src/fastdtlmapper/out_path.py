@@ -52,7 +52,7 @@ class OutPath:
         self.result_summary_dir = self.goea_dir / "result_summary"
         self.result_summary_plot_dir = self.result_summary_dir / "significant_go_plot"
 
-        self.obo_file = self.goea_dir / "go-basic.obo"
+        self.obo_file = self.go_enrichment_dir / "go-basic.obo"
         self.og2go_association_file = self.go_enrichment_dir / "og2go_association.txt"
         self.significant_go_list_file = (
             self.result_summary_dir / "significant_go_list.tsv"
