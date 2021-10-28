@@ -148,7 +148,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         default=default_trn_cost,
         metavar="",
     )
-    default_inflation = 3.0
+    default_inflation = 1.5
     parser.add_argument(
         "--inflation",
         type=float,
