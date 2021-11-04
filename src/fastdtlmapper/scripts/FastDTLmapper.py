@@ -135,23 +135,43 @@ def trimal_run(outpath: OutPath, cmd: Cmd) -> None:
     """Run trimal"""
     print("\n# 03. Trim each OG alignment using trimal")
     trimal_cmd_list = []
-    for aln_file in sorted(outpath.dtl_rec_dir.glob("**/*_aln.fa")):
+    aln_file_list = sorted(outpath.dtl_rec_dir.glob("**/*_aln.fa"))
+    for aln_file in aln_file_list:
         group_id = aln_file.parent.name
         aln_trim_file = aln_file.parent / (group_id + "_aln_trim.fa")
         trimal_cmd = cmd.get_trimal_cmd(aln_file, aln_trim_file)
         trimal_cmd_list.append(trimal_cmd)
-        shutil.copy(aln_file, aln_trim_file)
+        if aln_trim_file.exists():
+            aln_trim_file.unlink()
 
     cmd.run_parallel_cmd(
         trimal_cmd_list, outpath.tmp_parallel_cmds_file, outpath.trimal_log_file
     )
 
-    # If trimal removed sequence, use raw mafft alignment in next step
-    for aln_file in sorted(outpath.dtl_rec_dir.glob("**/*_aln.fa")):
+    def is_equal_seq_num(aln_file: Path, aln_trim_file: Path) -> bool:
+        if not aln_trim_file.exists():
+            return False
+        return UtilFasta(aln_file).seq_num == UtilFasta(aln_trim_file).seq_num
+
+    # If trimal(-automated1) remove sequence, use other options
+    for aln_file in aln_file_list:
         group_id = aln_file.parent.name
         aln_trim_file = aln_file.parent / (group_id + "_aln_trim.fa")
-        if UtilFasta(aln_file).seq_num > UtilFasta(aln_trim_file).seq_num:
-            shutil.copy(aln_file, aln_trim_file)
+        if is_equal_seq_num(aln_file, aln_trim_file):
+            continue
+
+        trimal_cmd = f"trimal -in {aln_file} -out {aln_trim_file} -gappyout"
+        sp.run(trimal_cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        if is_equal_seq_num(aln_file, aln_trim_file):
+            continue
+
+        for ratio in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+            trimal_cmd = (
+                f"trimal -in {aln_file} -out {aln_trim_file} -gt 0.9 -cons {ratio}"
+            )
+            sp.run(trimal_cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+            if is_equal_seq_num(aln_file, aln_trim_file):
+                break
 
 
 @print_runtime
