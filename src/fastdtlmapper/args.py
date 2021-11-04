@@ -58,7 +58,7 @@ class Args:
             + f"Duplication event cost = {self.dup_cost}\n"
             + f"Loss event cost = {self.los_cost}\n"
             + f"Transfer event cost = {self.trn_cost}\n"
-            + f"MCL inflation parameter = {self.inflation}\n"
+            + f"OrthoFinder MCL inflation parameter = {self.inflation}\n"
             + f"Number of random seed = {self.rseed}\n\n"
             + f"Start time = {unixtime_to_datestr(self._start_time)}\n"
             + f"End time = {unixtime_to_datestr(end_time)}\n"
@@ -148,7 +148,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         default=default_trn_cost,
         metavar="",
     )
-    default_inflation = 1.5
+    default_inflation = 3.0
     parser.add_argument(
         "--inflation",
         type=float,

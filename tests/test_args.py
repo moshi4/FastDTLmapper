@@ -18,7 +18,7 @@ def test_get_args_default_ok():
     assert args.dup_cost == 2
     assert args.los_cost == 1
     assert args.trn_cost == 3
-    assert args.inflation == 1.5
+    assert args.inflation == 3.0
     assert args.timetree is False
     assert args.rseed == 0
 

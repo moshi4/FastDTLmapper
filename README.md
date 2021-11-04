@@ -162,7 +162,7 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
     --dup_cost            Duplication event cost (Default: 2)
     --los_cost            Loss event cost (Default: 1)
     --trn_cost            Transfer event cost (Default: 3)
-    --inflation           OrthoFinder MCL inflation parameter (Default: 1.5)
+    --inflation           OrthoFinder MCL inflation parameter (Default: 3.0)
     --timetree            Use species tree as timetree in AnGST (Default: off)
     --rseed               Number of random seed (Default: 0)
 
