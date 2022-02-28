@@ -4,7 +4,7 @@
 ![OS](https://img.shields.io/badge/OS-Linux-steelblue)
 ![License](https://img.shields.io/badge/License-GPL3.0-steelblue)
 [![Latest PyPI version](https://img.shields.io/pypi/v/fastdtlmapper.svg)](https://pypi.python.org/pypi/fastdtlmapper)
-[![Downloads](https://static.pepy.tech/personalized-badge/fastdtlmapper?period=month&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/fastdtlmapper)  
+[![Downloads](https://static.pepy.tech/personalized-badge/fastdtlmapper?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads)](https://pepy.tech/project/fastdtlmapper)  
 ![CI workflow](https://github.com/moshi4/FastDTLmapper/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/moshi4/FastDTLmapper/branch/main/graph/badge.svg?token=ZJ8D747JUY)](https://codecov.io/gh/moshi4/FastDTLmapper)
 
