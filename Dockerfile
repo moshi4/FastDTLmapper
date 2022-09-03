@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip python2 libgomp1 qt5-default
+    apt-get install -y python3 python3-pip python2 libgomp1 qt5-default xvfb
 
 # Install FastDTLmapper & Clear dependencies cache
 RUN pip install -U pip && \
