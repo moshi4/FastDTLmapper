@@ -40,14 +40,20 @@ Map data is embeded in newick format bootstrap value field and user can visualiz
 ## Install
 
 FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux** (Tested on Ubuntu20.04).  
+> :warning: Additionally, dependent tools require **Python2.7** and **Perl5**.  
 
-Install PyPI stable version with pip:
+**Install PyPI stable package:**
 
     pip install fastdtlmapper
 
-Install latest development version with pip:
+**Install latest development package:**
 
     pip install git+git://github.com/moshi4/FastDTLmapper.git
+
+**Use Docker ([Image Registry](https://github.com/moshi4/FastDTLmapper/pkgs/container/fastdtlmapper)):**
+
+    docker pull ghcr.io/moshi4/fastdtlmapper:v0.3.2
+    docker run ghcr.io/moshi4/fastdtlmapper:v0.3.2 FastDTLmapper -h
 
 ### Dependencies
 
@@ -75,9 +81,9 @@ Following dependencies are packaged in [src/fastdtlmapper/bin](https://github.co
 - [Treerecs](https://project.inria.fr/treerecs/) [v1.2]  
   Multifurcated gene tree correction tool  
 - [AnGST](https://github.com/almlab/angst)  
-  DTL reconciliation tool (Requires Python 2.X to run)
+  DTL reconciliation tool (Requires Python 2.7 to run)
 - [parallel](https://www.gnu.org/software/parallel/) [v20200922]  
-  Job parallelization tool (Requires Perl to run)
+  Job parallelization tool (Requires Perl5 to run)
 
 <details>
 <summary> Dependencies Citation List</summary>
@@ -184,9 +190,7 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
 
 ### Example Command
 
-Download example dataset:
-
-    wget https://github.com/moshi4/FastDTLmapper/wiki/dataset/example.zip
+Click [here](https://github.com/moshi4/FastDTLmapper/wiki/dataset/example.zip) to download dataset (5.8Mb).  
 
 This dataset is identical to [example](https://github.com/moshi4/FastDTLmapper/tree/main/example) in this repository.
 
