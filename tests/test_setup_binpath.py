@@ -7,7 +7,7 @@ from pytest import MonkeyPatch
 
 def test_setup_binpath_ok(monkeypatch: MonkeyPatch):
     """test setup_binpath ok (no error)"""
-    monkeypatch.setenv("PATH", "")
+    monkeypatch.setenv("PATH", "/usr/bin/")
     root_bin_path = Path(__file__).parent.parent / "src" / "fastdtlmapper" / "bin"
     SetupBinpath(root_bin_path)
 

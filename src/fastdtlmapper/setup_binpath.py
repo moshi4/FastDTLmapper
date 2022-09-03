@@ -21,6 +21,7 @@ class SetupBinpath:
             "AnGST.py",
             "AnGST_wrapper.py",
             "parallel",
+            "python2",
         ]
     )
 
