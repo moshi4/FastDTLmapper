@@ -10,6 +10,8 @@ from enum import IntEnum, auto
 from pathlib import Path
 from typing import List, Optional, Union
 
+from fastdtlmapper import __version__
+
 
 @dataclass
 class Args:
@@ -86,7 +88,8 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         Args: Args Class
     """
     parser = argparse.ArgumentParser(
-        description="Fast genome-wide DTL event mapping tool"
+        description=f"Fast genome-wide DTL event mapping tool (v{__version__})",
+        add_help=False,
     )
 
     parser.add_argument(
@@ -168,6 +171,19 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         help=f"Number of random seed (Default: {default_rseed})",
         default=default_rseed,
         metavar="",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        version=f"v{__version__}",
+        help="Print version information",
+        action="version",
+    )
+    parser.add_argument(
+        "-h",
+        "--help",
+        help="Show this help message and exit",
+        action="help",
     )
     #######################################################
     # Hidden test option for developer
