@@ -21,7 +21,7 @@ class InputCheck:
         default_factory=lambda: [".gb", ".gbk", ".genbank"]
     )
     invalid_char_list: List[str] = field(
-        default_factory=lambda: ["'", '"', "-", "_", "|", "."]
+        default_factory=lambda: ["'", '"', "-", "_", "|", ".", "$"]
     )
 
     def __post_init__(self):

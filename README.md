@@ -183,7 +183,7 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
 - **Input Limitation**
 
   fasta or genbank files (--indir option)  
-  >:warning: Following characters cannot be included in file name '_', '-', '|', '.'  
+  >:warning: Following characters cannot be included in file name '_', '-', '|', '.', '$'  
 
   species tree file (--tree option)  
   >:warning: Species name in species tree must match fasta or genbank file name  
