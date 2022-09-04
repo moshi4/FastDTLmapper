@@ -146,11 +146,17 @@ def trimal_run(outpath: OutPath, cmd: Cmd) -> None:
         trimal_cmd_list, outpath.tmp_parallel_cmds_file, outpath.trimal_log_file
     )
 
-    # If trimal removed sequence, use raw mafft alignment in next step
+    # If trimal removed sequence or exessive trimming
+    # use raw mafft alignment in next step
     for aln_file in sorted(outpath.dtl_rec_dir.glob("**/*_aln.fa")):
         group_id = aln_file.parent.name
         aln_trim_file = aln_file.parent / (group_id + "_aln_trim.fa")
         if UtilFasta(aln_file).seq_num > UtilFasta(aln_trim_file).seq_num:
+            shutil.copy(aln_file, aln_trim_file)
+
+        aln_length = UtilFasta.get_aln_length(aln_file)
+        aln_trim_length = UtilFasta.get_aln_length(aln_trim_file)
+        if aln_trim_length < 5 or aln_length > aln_trim_length * 10:
             shutil.copy(aln_file, aln_trim_file)
 
 

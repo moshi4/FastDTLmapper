@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Union
 
-from Bio import SeqIO
+from Bio import AlignIO, SeqIO
 
 
 @dataclass
@@ -72,3 +72,15 @@ class UtilFasta:
             record.id = f"{id_prefix}_GENE{cnt:06d}_{record_id}"
             fix_records.append(record)
         SeqIO.write(fix_records, fasta_outfile, "fasta-2line")
+
+    @classmethod
+    def get_aln_length(cls, aln_file: Union[str, Path]) -> int:
+        """Get alignment length
+
+        Args:
+            aln_file (Union[str, Path]): Alignment file
+
+        Returns:
+            int: alignment length
+        """
+        return AlignIO.read(aln_file, "fasta").get_alignment_length()
