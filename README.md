@@ -52,8 +52,8 @@ FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux** (Tested
 
 **Use Docker ([Image Registry](https://github.com/moshi4/FastDTLmapper/pkgs/container/fastdtlmapper)):**
 
-    docker pull ghcr.io/moshi4/fastdtlmapper:v0.3.2
-    docker run ghcr.io/moshi4/fastdtlmapper:v0.3.2 FastDTLmapper -h
+    docker pull ghcr.io/moshi4/fastdtlmapper:v0.3.3
+    docker run ghcr.io/moshi4/fastdtlmapper:v0.3.3 FastDTLmapper -h
 
 ### Dependencies
 
@@ -160,7 +160,6 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
 
 ### Options
 
-    -h, --help            show this help message and exit
     -i IN, --indir IN     Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.gbff) directory
     -t TREE, --tree TREE  Input rooted species newick tree file
     -o OUT, --outdir OUT  Output directory
@@ -171,6 +170,8 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
     --inflation           OrthoFinder MCL inflation parameter (Default: 3.0)
     --timetree            Use species tree as timetree in AnGST (Default: off)
     --rseed               Number of random seed (Default: 0)
+    -v, --version         Print version information
+    -h, --help            Show this help message and exit
 
 - **Timetree Option**
 
