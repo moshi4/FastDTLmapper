@@ -18,7 +18,7 @@ class InputCheck:
         default_factory=lambda: [".fa", ".faa", ".fasta"]
     )
     valid_genbank_suffix_list: List[str] = field(
-        default_factory=lambda: [".gb", ".gbk", ".genbank"]
+        default_factory=lambda: [".gb", ".gbk", ".gbff"]
     )
     invalid_char_list: List[str] = field(
         default_factory=lambda: ["'", '"', "-", "_", "|", ".", "$"]

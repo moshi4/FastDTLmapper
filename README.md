@@ -161,7 +161,7 @@ This is brief description of analysis pipeline. See [wiki](https://github.com/mo
 ### Options
 
     -h, --help            show this help message and exit
-    -i IN, --indir IN     Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.genbank) directory
+    -i IN, --indir IN     Input Fasta(*.fa|*.faa|*.fasta), Genbank(*.gb|*.gbk|*.gbff) directory
     -t TREE, --tree TREE  Input rooted species newick tree file
     -o OUT, --outdir OUT  Output directory
     -p , --process_num    Number of processor (Default: MaxProcessor - 1)

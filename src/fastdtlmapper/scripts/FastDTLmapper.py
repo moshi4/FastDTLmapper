@@ -81,7 +81,7 @@ def format_user_fasta(fasta_dir: Path, format_fasta_dir: Path) -> None:
         if infile.suffix in (".fa", ".faa", ".fasta"):
             # Add serial number annotation to fasta
             UtilFasta(infile).add_serial_id(fasta_outfile, species_name)
-        elif infile.suffix in (".gb", ".gbk", ".genbank"):
+        elif infile.suffix in (".gb", ".gbk", ".gbff"):
             # Convert genbank to fasta with serial number annotation
             UtilGenbank(infile).convert_cds_fasta(
                 fasta_outfile, "protein", species_name

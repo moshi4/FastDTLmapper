@@ -95,7 +95,7 @@ def get_args(argv: Optional[List[str]] = None) -> Args:
         required=True,
         type=Path,
         help="Input Fasta(*.fa|*.faa|*.fasta), "
-        + "Genbank(*.gb|*.gbk|*.genbank) directory",
+        + "Genbank(*.gb|*.gbk|*.gbff) directory",
         metavar="IN",
     )
     parser.add_argument(
