@@ -52,8 +52,8 @@ FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux** (Tested
 
 **Use Docker ([Image Registry](https://github.com/moshi4/FastDTLmapper/pkgs/container/fastdtlmapper)):**
 
-    docker pull ghcr.io/moshi4/fastdtlmapper:v0.3.3
-    docker run ghcr.io/moshi4/fastdtlmapper:v0.3.3 FastDTLmapper -h
+    docker pull ghcr.io/moshi4/fastdtlmapper:latest
+    docker run -it --rm ghcr.io/moshi4/fastdtlmapper:latest FastDTLmapper -h
 
 ### Dependencies
 
