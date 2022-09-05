@@ -22,8 +22,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker Build
-        run: docker build --tag ghcr.io/$GITHUB_ACTOR/fastdtlmapper:v${{ github.event.inputs.version }} .
-
-      - name: Docker Push
-        run: docker push ghcr.io/$GITHUB_ACTOR/fastdtlmapper:v${{ github.event.inputs.version }}
+      - name: Docker Build & Push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/fastdtlmapper:latest
+            ghcr.io/${{ github.repository_owner }}/fastdtlmapper:v${{ github.event.inputs.version }}
