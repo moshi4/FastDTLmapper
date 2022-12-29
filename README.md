@@ -40,7 +40,8 @@ Map data is embeded in newick format bootstrap value field and user can visualiz
 ## Install
 
 FastDTLmapper is implemented in **Python3(>=3.7)** and runs on **Linux** (Tested on Ubuntu20.04).  
-> :warning: Additionally, dependent tools require **Python2.7** and **Perl5**.  
+> :warning: Additionally, dependent tools require **Python2.7** and **Perl5**.
+> Since FastDTLmapper's dependencies are complex, it is recommended to use Docker image.
 
 **Install PyPI stable package:**
 
